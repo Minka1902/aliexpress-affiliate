@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Software Analysis Report</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      color: #333;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+
+    .report-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #ccc;
+    }
+
+    /* Meta header table */
+    .meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .meta-table td {
+      padding: 7px 14px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .meta-table td:first-child {
+      width: 160px;
+      background: #e8e8e8;
+      font-weight: bold;
+      color: #444;
+    }
+
+    /* Entry rows */
+    .entry {
+      display: flex;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .entry-index {
+      width: 60px;
+      min-width: 60px;
+      padding: 10px 14px;
+      background: #f9f9f9;
+      border-right: 1px solid #ccc;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .entry-fields {
+      flex: 1;
+    }
+
+    .field-row {
+      display: flex;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .field-row:last-child {
+      border-bottom: none;
+    }
+
+    .field-label {
+      width: 180px;
+      min-width: 180px;
+      padding: 7px 14px;
+      background: #f0f0f0;
+      font-weight: bold;
+      color: #444;
+    }
+
+    .field-value {
+      flex: 1;
+      padding: 7px 14px;
+    }
+
+    .field-value a {
+      color: #1a5fb4;
+      text-decoration: none;
+    }
+
+    .field-value a:hover {
+      text-decoration: underline;
+    }
+
+    /* Matched sequences inner table */
+    .seq-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .seq-table th {
+      text-align: left;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-bottom: 1px solid #ccc;
+      background: transparent;
+    }
+
+    .seq-table td {
+      padding: 4px 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .seq-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .badge-true {
+      color: #1a5fb4;
+    }
+
+    .versions-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .version-tag {
+      background: #ddeeff;
+      color: #1a5fb4;
+      border-radius: 3px;
+      padding: 1px 7px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="report-container" id="report"></div>
+
+  <script>
+    const data = [
+      {
+        description: "SSL library",
+        matching_strings: [
+          { identifier: "$a", offset: 2751, string: "OPENSSL" },
+        ],
+        name: "OpenSSL",
+        open_source: true,
+        rule: "OpenSSL",
+        versions: [],
+        website: "https://www.openssl.org",
+      },
+      {
+        description: "Lighttpd is a web-server optimized for low memory and cpu usage.",
+        matching_strings: [
+          { identifier: "$a", offset: 2522, string: "lighttpd-1.4.39" },
+          { identifier: "$a", offset: 2617, string: "lighttpd-1.4.39" },
+          { identifier: "$a", offset: 2718, string: "lighttpd-1.4.39" },
+        ],
+        name: "lighttpd",
+        open_source: true,
+        rule: "lighttpd",
+        versions: ["1.4.39"],
+        website: "https://www.lighttpd.net/",
+      },
+    ];
+
+    const meta = {
+      "Time of Analysis": new Date().toISOString().replace("T", " ").substring(0, 19),
+      "Plugin Version": "1.0.0",
+      "System Version": "4.5.0",
+    };
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function buildMatchedSequences(strings) {
+      let rows = strings.map(s => `
+        <tr>
+          <td>${escapeHtml(s.identifier)}</td>
+          <td>${escapeHtml(s.offset)}</td>
+          <td>${escapeHtml(s.string)}</td>
+        </tr>
+      `).join("");
+      return `
+        <table class="seq-table">
+          <thead>
+            <tr>
+              <th>identifier</th>
+              <th>offset</th>
+              <th>string</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function buildEntry(item, index) {
+      const versionsHtml = item.versions.length
+        ? `<div class="versions-list">${item.versions.map(v => `<span class="version-tag">${escapeHtml(v)}</span>`).join("")}</div>`
+        : "<span style='color:#999'>—</span>";
+
+      return `
+        <div class="entry">
+          <div class="entry-index">${index}</div>
+          <div class="entry-fields">
+            <div class="field-row">
+              <div class="field-label">Software Name</div>
+              <div class="field-value">${escapeHtml(item.name)}</div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Rule</div>
+              <div class="field-value">${escapeHtml(item.rule)}</div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Version</div>
+              <div class="field-value">${versionsHtml}</div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Description</div>
+              <div class="field-value">${escapeHtml(item.description)}</div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Website</div>
+              <div class="field-value"><a href="${escapeHtml(item.website)}" target="_blank">${escapeHtml(item.website)}</a></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Open Source</div>
+              <div class="field-value"><span class="badge badge-true">${item.open_source ? "True" : "False"}</span></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Matched Sequence</div>
+              <div class="field-value">${buildMatchedSequences(item.matching_strings)}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    const report = document.getElementById("report");
+
+    // Meta section
+    const metaRows = Object.entries(meta).map(([k, v]) => `
+      <tr>
+        <td>${escapeHtml(k)}</td>
+        <td>${escapeHtml(v)}</td>
+      </tr>
+    `).join("");
+    report.innerHTML = `<table class="meta-table"><tbody>${metaRows}</tbody></table>`;
+
+    // Data entries
+    data.forEach((item, i) => {
+      report.innerHTML += buildEntry(item, i);
+    });
+  </script>
+</body>
+</html>
