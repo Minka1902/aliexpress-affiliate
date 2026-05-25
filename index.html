@@ -4,148 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Software Analysis Report</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      color: #333;
-      background: #f4f4f4;
-      padding: 20px;
-    }
-
-    .report-container {
-      max-width: 1100px;
-      margin: 0 auto;
-      background: #fff;
-      border: 1px solid #ccc;
-    }
-
-    /* Meta header table */
-    .meta-table {
-      width: 100%;
-      border-collapse: collapse;
-      border-bottom: 2px solid #ccc;
-    }
-
-    .meta-table td {
-      padding: 7px 14px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .meta-table td:first-child {
-      width: 160px;
-      background: #e8e8e8;
-      font-weight: bold;
-      color: #444;
-    }
-
-    /* Entry rows */
-    .entry {
-      display: flex;
-      border-bottom: 2px solid #ccc;
-    }
-
-    .entry-index {
-      width: 60px;
-      min-width: 60px;
-      padding: 10px 14px;
-      background: #f9f9f9;
-      border-right: 1px solid #ccc;
-      font-weight: bold;
-      color: #555;
-    }
-
-    .entry-fields {
-      flex: 1;
-    }
-
-    .field-row {
-      display: flex;
-      border-bottom: 1px solid #e8e8e8;
-    }
-
-    .field-row:last-child {
-      border-bottom: none;
-    }
-
-    .field-label {
-      width: 180px;
-      min-width: 180px;
-      padding: 7px 14px;
-      background: #f0f0f0;
-      font-weight: bold;
-      color: #444;
-    }
-
-    .field-value {
-      flex: 1;
-      padding: 7px 14px;
-    }
-
-    .field-value a {
-      color: #1a5fb4;
-      text-decoration: none;
-    }
-
-    .field-value a:hover {
-      text-decoration: underline;
-    }
-
-    /* Matched sequences inner table */
-    .seq-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .seq-table th {
-      text-align: left;
-      font-weight: bold;
-      padding: 4px 10px;
-      border-bottom: 1px solid #ccc;
-      background: transparent;
-    }
-
-    .seq-table td {
-      padding: 4px 10px;
-      border-bottom: 1px solid #eee;
-    }
-
-    .seq-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 1px 8px;
-      border-radius: 3px;
-      font-size: 12px;
-    }
-
-    .badge-true {
-      color: #1a5fb4;
-    }
-
-    .versions-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-
-    .version-tag {
-      background: #ddeeff;
-      color: #1a5fb4;
-      border-radius: 3px;
-      padding: 1px 7px;
-      font-size: 12px;
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body>
-  <div class="report-container" id="report"></div>
+<body class="bg-gray-100 p-6">
+  <div id="root"></div>
 
-  <script>
+  <script type="text/babel">
     const data = [
       {
         description: "SSL library",
@@ -174,97 +41,114 @@
     ];
 
     const meta = {
-      "Time of Analysis": new Date().toISOString().replace("T", " ").substring(0, 19),
+      "Time of Analysis": new Date().toISOString().replace("T", " ").slice(0, 19),
       "Plugin Version": "1.0.0",
       "System Version": "4.5.0",
     };
 
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+    function MetaRow({ label, value }) {
+      return (
+        <tr className="border-b border-gray-200">
+          <td className="bg-gray-200 px-4 py-2 font-semibold text-gray-600 w-44">{label}</td>
+          <td className="px-4 py-2 text-gray-700">{value}</td>
+        </tr>
+      );
     }
 
-    function buildMatchedSequences(strings) {
-      let rows = strings.map(s => `
-        <tr>
-          <td>${escapeHtml(s.identifier)}</td>
-          <td>${escapeHtml(s.offset)}</td>
-          <td>${escapeHtml(s.string)}</td>
-        </tr>
-      `).join("");
-      return `
-        <table class="seq-table">
+    function FieldRow({ label, children }) {
+      return (
+        <div className="flex border-b border-gray-100 last:border-b-0">
+          <div className="w-44 min-w-[11rem] bg-gray-100 px-4 py-2 font-semibold text-gray-600 text-sm">
+            {label}
+          </div>
+          <div className="flex-1 px-4 py-2 text-sm text-gray-700">{children}</div>
+        </div>
+      );
+    }
+
+    function MatchedSequences({ strings }) {
+      return (
+        <table className="w-full text-sm border-collapse">
           <thead>
             <tr>
-              <th>identifier</th>
-              <th>offset</th>
-              <th>string</th>
+              <th className="text-left font-bold pb-1 pr-8">identifier</th>
+              <th className="text-left font-bold pb-1 pr-8">offset</th>
+              <th className="text-left font-bold pb-1">string</th>
             </tr>
           </thead>
-          <tbody>${rows}</tbody>
+          <tbody>
+            {strings.map((s, i) => (
+              <tr key={i} className="border-t border-gray-100">
+                <td className="pr-8 py-1">{s.identifier}</td>
+                <td className="pr-8 py-1">{s.offset}</td>
+                <td className="py-1">{s.string}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
-      `;
+      );
     }
 
-    function buildEntry(item, index) {
-      const versionsHtml = item.versions.length
-        ? `<div class="versions-list">${item.versions.map(v => `<span class="version-tag">${escapeHtml(v)}</span>`).join("")}</div>`
-        : "<span style='color:#999'>—</span>";
-
-      return `
-        <div class="entry">
-          <div class="entry-index">${index}</div>
-          <div class="entry-fields">
-            <div class="field-row">
-              <div class="field-label">Software Name</div>
-              <div class="field-value">${escapeHtml(item.name)}</div>
-            </div>
-            <div class="field-row">
-              <div class="field-label">Rule</div>
-              <div class="field-value">${escapeHtml(item.rule)}</div>
-            </div>
-            <div class="field-row">
-              <div class="field-label">Version</div>
-              <div class="field-value">${versionsHtml}</div>
-            </div>
-            <div class="field-row">
-              <div class="field-label">Description</div>
-              <div class="field-value">${escapeHtml(item.description)}</div>
-            </div>
-            <div class="field-row">
-              <div class="field-label">Website</div>
-              <div class="field-value"><a href="${escapeHtml(item.website)}" target="_blank">${escapeHtml(item.website)}</a></div>
-            </div>
-            <div class="field-row">
-              <div class="field-label">Open Source</div>
-              <div class="field-value"><span class="badge badge-true">${item.open_source ? "True" : "False"}</span></div>
-            </div>
-            <div class="field-row">
-              <div class="field-label">Matched Sequence</div>
-              <div class="field-value">${buildMatchedSequences(item.matching_strings)}</div>
-            </div>
+    function EntryRow({ item, index }) {
+      return (
+        <div className="flex border-b-2 border-gray-300">
+          <div className="w-14 min-w-[3.5rem] px-4 py-3 bg-gray-50 border-r border-gray-300 font-bold text-gray-500 text-sm">
+            {index}
+          </div>
+          <div className="flex-1">
+            <FieldRow label="Software Name">{item.name}</FieldRow>
+            <FieldRow label="Rule">{item.rule}</FieldRow>
+            <FieldRow label="Version">
+              {item.versions.length ? (
+                <div className="flex flex-wrap gap-1">
+                  {item.versions.map((v) => (
+                    <span key={v} className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded">
+                      {v}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-gray-400">—</span>
+              )}
+            </FieldRow>
+            <FieldRow label="Description">{item.description}</FieldRow>
+            <FieldRow label="Website">
+              <a href={item.website} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                {item.website}
+              </a>
+            </FieldRow>
+            <FieldRow label="Open Source">
+              <span className="text-blue-600">{item.open_source ? "True" : "False"}</span>
+            </FieldRow>
+            <FieldRow label="Matched Sequence">
+              <MatchedSequences strings={item.matching_strings} />
+            </FieldRow>
           </div>
         </div>
-      `;
+      );
     }
 
-    const report = document.getElementById("report");
+    function App() {
+      return (
+        <div className="max-w-5xl mx-auto bg-white border border-gray-300 shadow-sm">
+          {/* Meta header */}
+          <table className="w-full border-collapse border-b-2 border-gray-300">
+            <tbody>
+              {Object.entries(meta).map(([k, v]) => (
+                <MetaRow key={k} label={k} value={v} />
+              ))}
+            </tbody>
+          </table>
 
-    // Meta section
-    const metaRows = Object.entries(meta).map(([k, v]) => `
-      <tr>
-        <td>${escapeHtml(k)}</td>
-        <td>${escapeHtml(v)}</td>
-      </tr>
-    `).join("");
-    report.innerHTML = `<table class="meta-table"><tbody>${metaRows}</tbody></table>`;
+          {/* Entries */}
+          {data.map((item, i) => (
+            <EntryRow key={item.name} item={item} index={i} />
+          ))}
+        </div>
+      );
+    }
 
-    // Data entries
-    data.forEach((item, i) => {
-      report.innerHTML += buildEntry(item, i);
-    });
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
   </script>
 </body>
 </html>
