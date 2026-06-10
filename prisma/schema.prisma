@@ -1,0 +1,94 @@
+// AliExpress Affiliate App — data model
+// Privacy invariants: trackingId, aiKeyEncrypted, and DS tokens are SERVER-ONLY and must
+// never be serialized to the client (see src/dto/user.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         Role     @default(USER)
+  status       Status   @default(PENDING)
+
+  // SERVER-ONLY: the AliExpress tracking (affiliate) ID assigned by the admin.
+  trackingId   String?
+
+  // Preferences
+  theme        String?  @default("aliexpress")
+  locale       String?  @default("en")
+  shipToCountry String? @default("US")
+
+  // AI: provider + encrypted (AES-GCM) BYO key. SERVER-ONLY.
+  aiProvider     String? // "claude" | "openai" | "gemini"
+  aiKeyEncrypted String?
+
+  // Phase 2 (DS payments) — encrypted OAuth tokens. SERVER-ONLY.
+  dsAccessTokenEnc  String?
+  dsRefreshTokenEnc String?
+  dsTokenExpiry     DateTime?
+
+  links     GeneratedLink[]
+  addresses Address[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GeneratedLink {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceUrl    String
+  productId    String?
+  affiliateUrl String?
+  eligible     Boolean  @default(false)
+  title        String?
+  imageUrl     String?
+  tags         String? // comma-separated
+  note         String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Phase 2 — checkout/shipping address for ds.order.create
+model Address {
+  id            String  @id @default(cuid())
+  userId        String
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName      String
+  country       String
+  province      String?
+  city          String
+  address       String
+  address2      String?
+  zip           String
+  phone         String
+  phoneCountry  String?
+  locale        String? @default("en_US")
+  taxNumber     String?
+  isDefault     Boolean @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}

@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme tokens. Colors are space-separated RGB channels for Tailwind's <alpha-value>. */
+:root,
+[data-theme="aliexpress"] {
+  --brand: 230 46 4; /* #E62E04 */
+  --brand-dark: 255 106 0; /* #FF6A00 */
+  --accent: 255 71 71;
+  --page: 245 245 245;
+  --surface: 255 255 255;
+  --surface-2: 250 250 250;
+  --ink: 33 33 33;
+  --ink-muted: 117 117 117;
+  --line: 230 230 230;
+  --price: 230 46 4;
+}
+
+[data-theme="dark"] {
+  --brand: 255 106 0;
+  --brand-dark: 230 46 4;
+  --accent: 255 99 99;
+  --page: 18 18 20;
+  --surface: 30 30 34;
+  --surface-2: 38 38 43;
+  --ink: 240 240 240;
+  --ink-muted: 160 160 165;
+  --line: 55 55 60;
+  --price: 255 138 76;
+}
+
+[data-theme="contrast"] {
+  --brand: 0 0 0;
+  --brand-dark: 40 40 40;
+  --accent: 0 90 200;
+  --page: 255 255 255;
+  --surface: 255 255 255;
+  --surface-2: 255 255 255;
+  --ink: 0 0 0;
+  --ink-muted: 40 40 40;
+  --line: 0 0 0;
+  --price: 200 0 0;
+}
+
+html,
+body {
+  background-color: rgb(var(--page));
+  color: rgb(var(--ink));
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* RTL helper: flip horizontal margins handled by logical props in components. */
+[dir="rtl"] .ltr-only {
+  display: none;
+}
+
+@layer components {
+  .input {
+    @apply w-full border border-line rounded-lg px-3 py-2 bg-surface text-ink outline-none focus:ring-2 focus:ring-brand/40;
+  }
+  .btn-primary {
+    @apply bg-brand-gradient text-white rounded-full px-4 py-2 font-medium hover:opacity-90 disabled:opacity-60;
+  }
+  .card {
+    @apply bg-surface border border-line rounded-card p-4;
+  }
+}

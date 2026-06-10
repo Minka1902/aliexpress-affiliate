@@ -1,0 +1,88 @@
+{
+  "app": {
+    "name": "AffiLink",
+    "tagline": "Turn any AliExpress link into your affiliate link"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "linkGenerator": "Link Generator",
+    "orders": "Orders",
+    "library": "Library",
+    "cart": "Cart",
+    "wishlist": "Wishlist",
+    "settings": "Settings",
+    "admin": "Admin",
+    "signin": "Sign in",
+    "signup": "Sign up",
+    "signout": "Sign out",
+    "takeTour": "Take the tour"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "signinTitle": "Welcome back",
+    "signupTitle": "Create your account",
+    "signinCta": "Sign in",
+    "signupCta": "Create account",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "invalid": "Invalid email or password",
+    "exists": "An account with this email already exists"
+  },
+  "pending": {
+    "title": "Awaiting approval",
+    "body": "Your account was created and is waiting for the admin to approve it. You'll get an email once you're approved."
+  },
+  "link": {
+    "title": "Affiliate Link Generator",
+    "placeholder": "Paste one or more AliExpress product links (one per line)",
+    "generate": "Generate links",
+    "eligible": "Eligible",
+    "notEligible": "Not eligible",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "addToCart": "Add to cart",
+    "addToWishlist": "Add to wishlist",
+    "whyNotEligible": "This product isn't in the affiliate program, so no commissionable link can be made. Here are similar products that are eligible:",
+    "similar": "Similar eligible products"
+  },
+  "cart": { "title": "Cart", "empty": "Your cart is empty", "aiCheck": "AI safety + deals check", "max": "Cart is full (max 10)" },
+  "wishlist": { "title": "Wishlist", "empty": "Your wishlist is empty", "max": "Wishlist is full (max 10)", "nowEligible": "Now available as an affiliate link!", "stillNot": "Still not eligible — here's a similar one" },
+  "dashboard": {
+    "title": "Your dashboard",
+    "gmv": "Order value (GMV)",
+    "orders": "Orders",
+    "avgShipping": "Avg. shipping days",
+    "byCategory": "Top categories",
+    "byStatus": "Order status",
+    "overTime": "Order value over time",
+    "recommendations": "Recommended for you"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "language": "Language",
+    "shipTo": "Ship to country",
+    "ai": "AI assistant",
+    "aiProvider": "AI provider",
+    "aiKey": "Your API key",
+    "aiKeyHint": "Stored encrypted. Leave blank to use the free built-in overview.",
+    "save": "Save",
+    "saved": "Saved"
+  },
+  "themes": { "aliexpress": "AliExpress Light", "dark": "Dark", "contrast": "High Contrast" },
+  "admin": {
+    "title": "Admin",
+    "pending": "Pending approvals",
+    "users": "Users",
+    "approve": "Approve",
+    "reject": "Reject",
+    "trackingId": "Tracking ID",
+    "assign": "Assign",
+    "needsTracking": "Assign a tracking ID before approving",
+    "earnings": "Earnings (admin only)"
+  },
+  "common": { "loading": "Loading…", "error": "Something went wrong", "save": "Save" }
+}
