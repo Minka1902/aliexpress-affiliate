@@ -52,6 +52,16 @@ export function SettingsClient() {
   const [shipToCountry, setShipToCountry] = useState("");
   const [aiProvider, setAiProvider] = useState<"none" | AiProvider>("none");
   const [aiKey, setAiKey] = useState("");
+  const [clipboardAuto, setClipboardAuto] = useState(true);
+
+  useEffect(() => {
+    setClipboardAuto(localStorage.getItem("clipboardAutoDetect") !== "off");
+  }, []);
+
+  function toggleClipboard(on: boolean) {
+    setClipboardAuto(on);
+    localStorage.setItem("clipboardAutoDetect", on ? "on" : "off");
+  }
 
   useEffect(() => {
     let active = true;
@@ -222,6 +232,17 @@ export function SettingsClient() {
             <span className="text-xs text-ink-muted">{t("settings.aiKeyHint")}</span>
           </label>
         )}
+      </div>
+
+      <div className="card">
+        <label className="flex items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={clipboardAuto}
+            onChange={(e) => toggleClipboard(e.target.checked)}
+          />
+          {t("settings.clipboardAutoDetect")}
+        </label>
       </div>
 
       <div className="flex items-center gap-3">

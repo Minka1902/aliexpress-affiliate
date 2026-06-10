@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useLocalList } from "@/hooks/useLocalList";
 import { startTour } from "@/components/tour";
+import { useSeedMode } from "@/components/SeedModeProvider";
 import type { Entitlements } from "@/lib/roles";
 
 function setCookie(name: string, value: string) {
@@ -27,6 +28,7 @@ export function TopBar({
   const router = useRouter();
   const cart = useLocalList("cart");
   const wishlist = useLocalList("wishlist");
+  const { seedMode, enable } = useSeedMode();
   const [mounted, setMounted] = useState(false);
   const [search, setSearch] = useState("");
   useEffect(() => setMounted(true), []);
@@ -120,6 +122,18 @@ export function TopBar({
         >
           {t("nav.takeTour")}
         </button>
+
+        {isAdmin && (
+          <button
+            onClick={enable}
+            title={seedMode ? t("admin.seedOn") : t("admin.seed")}
+            className={`text-xs px-2 py-1 rounded ${
+              seedMode ? "bg-yellow-300 text-black" : "bg-white/20 hover:bg-white/30"
+            }`}
+          >
+            {seedMode ? t("admin.seedOn") : t("admin.seed")}
+          </button>
+        )}
 
         <select aria-label="language" value={locale} onChange={onLocale} className={selectClass}>
           <option value="en">🌐 EN</option>

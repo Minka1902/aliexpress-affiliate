@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useSeedMode } from "@/components/SeedModeProvider";
+import { seedAdminUsers, seedAdminOrders, seedUserStats } from "@/lib/seed-fixtures";
 
 type Role = "USER" | "FAMILY" | "PARTNERS_FAMILY" | "FRIENDS" | "PARTNERS_FRIENDS" | "ADMIN";
 type Status = "ACTIVE" | "BANNED";
@@ -73,14 +75,26 @@ export function AdminClient() {
 /* ------------------------------ Users ------------------------------ */
 function UsersTab() {
   const t = useTranslations();
+  const { seedMode } = useSeedMode();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<AdminUser | null>(null);
 
-  const load = useCallback(async (query: string) => {
-    const res = await fetch(`/api/admin/users${query ? `?q=${encodeURIComponent(query)}` : ""}`);
-    if (res.ok) setUsers((await res.json()).users);
-  }, []);
+  const load = useCallback(
+    async (query: string) => {
+      if (seedMode) {
+        const all = seedAdminUsers() as AdminUser[];
+        const ql = query.toLowerCase();
+        setUsers(
+          ql ? all.filter((u) => u.email.includes(ql) || (u.name ?? "").toLowerCase().includes(ql)) : all
+        );
+        return;
+      }
+      const res = await fetch(`/api/admin/users${query ? `?q=${encodeURIComponent(query)}` : ""}`);
+      if (res.ok) setUsers((await res.json()).users);
+    },
+    [seedMode]
+  );
 
   useEffect(() => {
     const id = setTimeout(() => load(q), 250);
@@ -170,16 +184,21 @@ function UserPopup({
   onChanged: () => void;
 }) {
   const t = useTranslations();
+  const { seedMode } = useSeedMode();
   const [form, setForm] = useState<AdminUser>(user);
   const [stats, setStats] = useState<Stats | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (seedMode) {
+      setStats(seedUserStats(user.id.length));
+      return;
+    }
     fetch(`/api/admin/users/${user.id}/stats`)
       .then((r) => r.json())
       .then((d) => setStats(d.stats))
       .catch(() => {});
-  }, [user.id]);
+  }, [user.id, seedMode]);
 
   async function patch(body: Record<string, unknown>) {
     setSaving(true);
@@ -317,6 +336,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 /* ------------------------------ Orders ------------------------------ */
 function OrdersTab() {
+  const { seedMode } = useSeedMode();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [summary, setSummary] = useState<{ count: number; gmv: string; commission: string; currency: string } | null>(
     null
@@ -324,6 +344,13 @@ function OrdersTab() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (seedMode) {
+      const s = seedAdminOrders();
+      setOrders(s.orders);
+      setSummary(s.summary);
+      setLoading(false);
+      return;
+    }
     fetch("/api/admin/orders")
       .then((r) => r.json())
       .then((d) => {
@@ -331,7 +358,7 @@ function OrdersTab() {
         setSummary(d.summary || null);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [seedMode]);
 
   if (loading) return <div className="skeleton h-64 rounded-card" />;
 

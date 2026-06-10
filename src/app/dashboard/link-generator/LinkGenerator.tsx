@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { isAliExpressUrl, extractAliExpressUrl } from "@/lib/aliexpress/match-url";
 import { useTranslations } from "next-intl";
 import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
@@ -64,24 +65,44 @@ export function LinkGenerator() {
   const [qr, setQr] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Web Share Target: prefill from ?shared= / ?text= / ?url=
+  const autoRan = useRef(false);
+
+  // Web Share Target / clipboard paste: prefill from ?shared= / ?text= / ?url=, and
+  // auto-generate when arriving with ?auto=1.
   useEffect(() => {
     const shared = search.get("shared") || search.get("url") || search.get("text");
-    if (shared) setText((prev) => (prev ? prev : shared));
+    if (!shared) return;
+    setText((prev) => (prev ? prev : shared));
+    if (search.get("auto") === "1" && !autoRan.current && isAliExpressUrl(shared)) {
+      autoRan.current = true;
+      void submitUrls([shared]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
-  async function submit() {
-    const urls = text
-      .split(/[\n,]+/)
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .slice(0, 10);
-    if (urls.length === 0) return;
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      const url = extractAliExpressUrl(text);
+      if (url) {
+        setText((prev) => (prev ? `${prev}\n${url}` : url));
+        toast(t("toast.copied"));
+      } else {
+        toast(t("clipboard.noLink"), "info");
+      }
+    } catch {
+      toast(t("clipboard.noLink"), "info");
+    }
+  }
+
+  async function submitUrls(urls: string[]) {
+    const clean = urls.map((s) => s.trim()).filter(Boolean).slice(0, 10);
+    if (clean.length === 0) return;
     setLoading(true);
     const res = await fetch("/api/link/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urls }),
+      body: JSON.stringify({ urls: clean }),
     });
     setLoading(false);
     if (!res.ok) return;
@@ -93,6 +114,10 @@ export function LinkGenerator() {
       if (r.proxyUrl) qrs[r.id] = await makeQr(r.proxyUrl);
     }
     setQr(qrs);
+  }
+
+  function submit() {
+    void submitUrls(text.split(/[\n,]+/));
   }
 
   function copy(text: string, id: string) {
@@ -113,10 +138,18 @@ export function LinkGenerator() {
           placeholder={t("link.placeholder")}
           className="input resize-y"
         />
-        <button onClick={submit} disabled={loading} className="btn-primary mt-3 inline-flex items-center gap-2">
-          {loading && <span className="spinner" />}
-          {loading ? t("common.loading") : t("link.generate")}
-        </button>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button onClick={submit} disabled={loading} className="btn-primary inline-flex items-center gap-2">
+            {loading && <span className="spinner" />}
+            {loading ? t("common.loading") : t("link.generate")}
+          </button>
+          <button
+            onClick={pasteFromClipboard}
+            className="rounded-full px-4 py-2 text-sm border border-line bg-surface text-ink hover:bg-surface-2"
+          >
+            {t("link.pasteFromClipboard")}
+          </button>
+        </div>
       </div>
 
       {loading && results.length === 0 && <ProductGridSkeleton count={4} />}

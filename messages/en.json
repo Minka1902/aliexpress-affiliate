@@ -85,7 +85,15 @@
     "addToCart": "Add to cart",
     "addToWishlist": "Add to wishlist",
     "whyNotEligible": "This product isn't in the affiliate program, so no commissionable link can be made. Here are similar products that are eligible:",
-    "similar": "Similar eligible products"
+    "similar": "Similar eligible products",
+    "pasteFromClipboard": "Paste from clipboard"
+  },
+  "clipboard": {
+    "detected": "Detected an AliExpress link — paste it?",
+    "paste": "Paste",
+    "dismiss": "Dismiss",
+    "dontAsk": "Don't ask again",
+    "noLink": "No AliExpress link on the clipboard"
   },
   "cart": { "title": "Cart", "empty": "Your cart is empty", "aiCheck": "AI safety + deals check", "max": "Cart is full (max 10)" },
   "wishlist": { "title": "Wishlist", "empty": "Your wishlist is empty", "max": "Wishlist is full (max 10)", "nowEligible": "Now available as an affiliate link!", "stillNot": "Still not eligible — here's a similar one" },
@@ -109,7 +117,8 @@
     "aiKey": "Your API key",
     "aiKeyHint": "Stored encrypted. Leave blank to use the free built-in overview.",
     "save": "Save",
-    "saved": "Saved"
+    "saved": "Saved",
+    "clipboardAutoDetect": "Auto-detect AliExpress links on the clipboard"
   },
   "themes": { "aliexpress": "AliExpress Light", "dark": "Dark", "contrast": "High Contrast" },
   "admin": {
