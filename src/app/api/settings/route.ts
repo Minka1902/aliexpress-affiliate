@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
   const data: Record<string, unknown> = {};
-  const { theme, locale, shipToCountry, aiProvider, aiKey } = parsed.data;
+  const { theme, locale, shipToCountry, aiProvider, aiKey, onboarded } = parsed.data;
   if (theme !== undefined) data.theme = theme;
   if (locale !== undefined) data.locale = locale;
   if (shipToCountry !== undefined) data.shipToCountry = shipToCountry.toUpperCase();
@@ -23,6 +23,7 @@ export async function PATCH(req: NextRequest) {
     // empty string / null clears the key
     data.aiKeyEncrypted = aiKey ? encryptSecret(aiKey) : null;
   }
+  if (onboarded === true) data.onboardedAt = new Date();
 
   const updated = await prisma.user.update({ where: { id: user.id }, data });
 

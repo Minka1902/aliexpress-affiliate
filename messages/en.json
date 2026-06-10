@@ -40,11 +40,39 @@
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
     "invalid": "Invalid email or password",
-    "exists": "An account with this email already exists"
+    "exists": "An account with this email already exists",
+    "banned": "This account has been suspended"
   },
-  "pending": {
-    "title": "Awaiting approval",
-    "body": "Your account was created and is waiting for the admin to approve it. You'll get an email once you're approved."
+  "banned": {
+    "title": "Account suspended",
+    "body": "Your account has been suspended. Please contact the administrator if you think this is a mistake."
+  },
+  "roles": {
+    "USER": "User",
+    "FAMILY": "Family",
+    "PARTNERS_FAMILY": "Partner's family",
+    "FRIENDS": "Friends",
+    "PARTNERS_FRIENDS": "Partner's friends",
+    "ADMIN": "Admin"
+  },
+  "pay": {
+    "title": "Unlock features",
+    "subtitle": "Get more out of the app",
+    "owned": "Unlocked",
+    "unlock": "Unlock",
+    "bundle": "Bundle — all features",
+    "bestValue": "Best value",
+    "featureAi": "AI assistant (coupons + safety check)",
+    "featureCart": "Cart",
+    "featureWishlist": "Wishlist",
+    "unlocked": "Unlocked!",
+    "locked": "Locked — unlock to use",
+    "goUnlock": "Unlock this feature"
+  },
+  "onboarding": {
+    "title": "Welcome! Let's set things up",
+    "subtitle": "Choose your theme and language. You can change these later in Settings.",
+    "start": "Get started"
   },
   "link": {
     "title": "Affiliate Link Generator",
@@ -93,7 +121,22 @@
     "trackingId": "Tracking ID",
     "assign": "Assign",
     "needsTracking": "Assign a tracking ID before approving",
-    "earnings": "Earnings (admin only)"
+    "earnings": "Earnings (admin only)",
+    "search": "Search by name or email",
+    "allOrders": "All orders & shipments",
+    "pricing": "Feature pricing",
+    "seed": "Seed",
+    "seedOn": "Seed mode ON (refresh to exit)",
+    "ban": "Ban",
+    "unban": "Unban",
+    "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save",
+    "joined": "Joined",
+    "statistics": "Statistics",
+    "commission": "Commission",
+    "confirmDelete": "Delete this user permanently?"
   },
+  "nav2": { "pay": "Unlock" },
   "common": { "loading": "Loading…", "error": "Something went wrong", "save": "Save", "clear": "Clear", "remove": "Remove", "proceed": "Proceed to checkout" }
 }

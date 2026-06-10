@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useLocalList } from "@/hooks/useLocalList";
 import { startTour } from "@/components/tour";
+import type { Entitlements } from "@/lib/roles";
 
 function setCookie(name: string, value: string) {
   document.cookie = `${name}=${value}; path=/; max-age=${60 * 60 * 24 * 365}`;
@@ -15,10 +16,12 @@ export function TopBar({
   isAdmin,
   theme,
   locale,
+  features,
 }: {
   isAdmin: boolean;
   theme: string;
   locale: string;
+  features: Entitlements;
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -132,12 +135,12 @@ export function TopBar({
 
         <Link
           data-tour="cart"
-          href="/dashboard/cart"
+          href={features.cart ? "/dashboard/cart" : "/dashboard/pay"}
           className="relative text-base hidden md:inline"
           aria-label={t("nav.cart")}
         >
-          🛒
-          {mounted && cart.items.length > 0 && (
+          {features.cart ? "🛒" : "🔒"}
+          {mounted && features.cart && cart.items.length > 0 && (
             <span className="absolute -top-2 -end-2 bg-white text-brand text-[10px] rounded-full px-1">
               {cart.items.length}
             </span>
@@ -145,12 +148,12 @@ export function TopBar({
         </Link>
         <Link
           data-tour="wishlist"
-          href="/dashboard/wishlist"
+          href={features.wishlist ? "/dashboard/wishlist" : "/dashboard/pay"}
           className="relative text-base hidden md:inline"
           aria-label={t("nav.wishlist")}
         >
-          ♡
-          {mounted && wishlist.items.length > 0 && (
+          {features.wishlist ? "♡" : "🔒"}
+          {mounted && features.wishlist && wishlist.items.length > 0 && (
             <span className="absolute -top-2 -end-2 bg-white text-brand text-[10px] rounded-full px-1">
               {wishlist.items.length}
             </span>

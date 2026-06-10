@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const user = await getApiUser();
-  if (!user || user.status !== "APPROVED") {
+  if (!user || user.status === "BANNED") {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const links = await prisma.generatedLink.findMany({

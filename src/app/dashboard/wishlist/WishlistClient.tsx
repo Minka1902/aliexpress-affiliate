@@ -6,6 +6,8 @@ import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { EmptyState } from "@/components/EmptyState";
 import { useToast } from "@/components/Toast";
+import { useEntitlements } from "@/components/EntitlementsProvider";
+import { Paywall } from "@/components/Paywall";
 
 interface Suggestion {
   productId: string;
@@ -29,6 +31,7 @@ interface RecheckResponse {
 export function WishlistClient() {
   const t = useTranslations();
   const { toast } = useToast();
+  const features = useEntitlements();
   const wishlist = useLocalList("wishlist");
   const cart = useLocalList("cart");
   const [results, setResults] = useState<Record<string, RecheckResult>>({});
@@ -39,7 +42,7 @@ export function WishlistClient() {
   const checkedRef = useRef(false);
 
   useEffect(() => {
-    if (!wishlist.ready || checkedRef.current) return;
+    if (!features.wishlist || !wishlist.ready || checkedRef.current) return;
     checkedRef.current = true;
     if (wishlist.items.length === 0) return;
 
@@ -59,7 +62,7 @@ export function WishlistClient() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [wishlist.ready, wishlist.items]);
+  }, [features.wishlist, wishlist.ready, wishlist.items]);
 
   function copyLink(id: string, url: string) {
     navigator.clipboard.writeText(url);
@@ -99,6 +102,8 @@ export function WishlistClient() {
       })
     );
   }
+
+  if (!features.wishlist) return <Paywall title={t("pay.featureWishlist")} />;
 
   return (
     <div className="flex flex-col gap-6">

@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
 import { EmptyState } from "@/components/EmptyState";
 import { useToast } from "@/components/Toast";
+import { useEntitlements } from "@/components/EntitlementsProvider";
+import { Paywall } from "@/components/Paywall";
 
 type Verdict = "Safe" | "Caution" | "Avoid";
 
@@ -52,10 +54,15 @@ const VERDICT_STYLES: Record<Verdict, string> = {
 export function CartClient() {
   const t = useTranslations();
   const { toast } = useToast();
+  const features = useEntitlements();
   const cart = useLocalList("cart");
   const [ai, setAi] = useState<AiState | null>(null);
 
   async function runAiCheck() {
+    if (!features.ai) {
+      toast(t("pay.goUnlock"), "info");
+      return;
+    }
     const payload = {
       products: cart.items.map((p) => ({
         productId: p.productId,
@@ -126,6 +133,8 @@ export function CartClient() {
   const missingLinks = cart.ready
     ? cart.items.filter((p) => !p.proxyUrl).length
     : 0;
+
+  if (!features.cart) return <Paywall title={t("pay.featureCart")} />;
 
   return (
     <div className="flex flex-col gap-6">

@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useLocalList } from "@/hooks/useLocalList";
+import type { Entitlements } from "@/lib/roles";
 
-export function BottomNav() {
+export function BottomNav({ features }: { features: Entitlements }) {
   const t = useTranslations();
   const pathname = usePathname();
   const cart = useLocalList("cart");
@@ -17,8 +18,18 @@ export function BottomNav() {
   const tabs = [
     { href: "/dashboard", icon: "🏠", label: t("nav.dashboard"), badge: 0 },
     { href: "/dashboard/link-generator", icon: "🔗", label: t("nav.linkGenerator"), badge: 0 },
-    { href: "/dashboard/cart", icon: "🛒", label: t("nav.cart"), badge: mounted ? cart.items.length : 0 },
-    { href: "/dashboard/wishlist", icon: "♡", label: t("nav.wishlist"), badge: mounted ? wishlist.items.length : 0 },
+    {
+      href: features.cart ? "/dashboard/cart" : "/dashboard/pay",
+      icon: features.cart ? "🛒" : "🔒",
+      label: t("nav.cart"),
+      badge: mounted && features.cart ? cart.items.length : 0,
+    },
+    {
+      href: features.wishlist ? "/dashboard/wishlist" : "/dashboard/pay",
+      icon: features.wishlist ? "♡" : "🔒",
+      label: t("nav.wishlist"),
+      badge: mounted && features.wishlist ? wishlist.items.length : 0,
+    },
     { href: "/dashboard/settings", icon: "⚙", label: t("nav.account"), badge: 0 },
   ];
 

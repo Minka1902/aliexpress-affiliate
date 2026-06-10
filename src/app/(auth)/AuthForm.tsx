@@ -29,15 +29,14 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
     setLoading(false);
 
     if (res.ok) {
-      const data = await res.json();
-      if (data.user?.status === "PENDING") router.push("/pending");
-      else router.push("/dashboard");
+      router.push("/dashboard");
       router.refresh();
       return;
     }
     const data = await res.json().catch(() => ({}));
     if (data.error === "exists") setError(t("auth.exists"));
     else if (data.error === "invalid") setError(t("auth.invalid"));
+    else if (data.error === "banned") setError(t("auth.banned"));
     else setError(t("common.error"));
   }
 

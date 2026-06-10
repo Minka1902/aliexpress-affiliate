@@ -3,241 +3,462 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
-type UserStatus = "PENDING" | "APPROVED" | "REJECTED";
+type Role = "USER" | "FAMILY" | "PARTNERS_FAMILY" | "FRIENDS" | "PARTNERS_FRIENDS" | "ADMIN";
+type Status = "ACTIVE" | "BANNED";
 
 interface AdminUser {
   id: string;
   email: string;
   name: string | null;
-  role: string;
-  status: UserStatus;
+  role: Role;
+  status: Status;
   trackingId: string | null;
-  theme: string;
-  locale: string;
-  shipToCountry: string;
-  aiProvider: string;
-  hasAiKey: boolean;
+  unlockedAi: boolean;
+  unlockedCart: boolean;
+  unlockedWishlist: boolean;
   createdAt: string;
 }
 
-interface UsersResponse {
-  users: AdminUser[];
+interface Config {
+  priceAi: number;
+  priceCart: number;
+  priceWishlist: number;
+  priceBundle: number;
+  bundleEnabled: boolean;
+  currency: string;
+  defaultTrackingId: string | null;
 }
 
-type Action = "approve" | "reject" | "assignTracking";
-
-interface PatchResponse {
-  user?: AdminUser;
-  error?: string;
+interface AdminOrder {
+  orderId: string;
+  status?: string;
+  productTitle?: string;
+  orderValue?: string;
+  currency?: string;
+  createdAt?: string;
+  category?: string;
+  commission?: string | null;
 }
 
-const STATUS_STYLES: Record<UserStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-800 border border-amber-200",
-  APPROVED: "bg-green-100 text-green-800 border border-green-200",
-  REJECTED: "bg-red-100 text-red-700 border border-red-200",
-};
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString();
-}
+const ROLES: Role[] = ["USER", "FAMILY", "PARTNERS_FAMILY", "FRIENDS", "PARTNERS_FRIENDS", "ADMIN"];
+type Tab = "users" | "orders" | "pricing";
 
 export function AdminClient() {
   const t = useTranslations();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>("users");
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await fetch("/api/admin/users");
-      if (!res.ok) throw new Error("bad");
-      const data = (await res.json()) as UsersResponse;
-      setUsers(data.users || []);
-      setDrafts((prev) => {
-        const next = { ...prev };
-        for (const u of data.users || []) {
-          if (next[u.id] === undefined) next[u.id] = u.trackingId || "";
-        }
-        return next;
-      });
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
+  return (
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-bold text-ink">{t("admin.title")}</h1>
+      <div className="flex gap-2 border-b border-line">
+        {(["users", "orders", "pricing"] as Tab[]).map((tb) => (
+          <button
+            key={tb}
+            onClick={() => setTab(tb)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${
+              tab === tb ? "border-brand text-brand" : "border-transparent text-ink-muted"
+            }`}
+          >
+            {tb === "users" ? t("admin.users") : tb === "orders" ? t("admin.allOrders") : t("admin.pricing")}
+          </button>
+        ))}
+      </div>
+      {tab === "users" && <UsersTab />}
+      {tab === "orders" && <OrdersTab />}
+      {tab === "pricing" && <PricingTab />}
+    </div>
+  );
+}
+
+/* ------------------------------ Users ------------------------------ */
+function UsersTab() {
+  const t = useTranslations();
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [q, setQ] = useState("");
+  const [selected, setSelected] = useState<AdminUser | null>(null);
+
+  const load = useCallback(async (query: string) => {
+    const res = await fetch(`/api/admin/users${query ? `?q=${encodeURIComponent(query)}` : ""}`);
+    if (res.ok) setUsers((await res.json()).users);
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    const id = setTimeout(() => load(q), 250);
+    return () => clearTimeout(id);
+  }, [q, load]);
 
-  async function runAction(id: string, action: Action) {
-    setBusy(id);
-    setRowErrors((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
+  return (
+    <div className="flex flex-col gap-4">
+      <input
+        className="input max-w-sm"
+        placeholder={t("admin.search")}
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
+      <div className="card overflow-x-auto p-0">
+        <table className="w-full min-w-[640px] text-sm">
+          <thead>
+            <tr className="text-left text-ink-muted border-b border-line">
+              <th className="py-2 px-3 font-medium">Email</th>
+              <th className="py-2 px-3 font-medium">Name</th>
+              <th className="py-2 px-3 font-medium">Role</th>
+              <th className="py-2 px-3 font-medium">Status</th>
+              <th className="py-2 px-3 font-medium">Tracking ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr
+                key={u.id}
+                onClick={() => setSelected(u)}
+                className="border-b border-line last:border-0 cursor-pointer hover:bg-surface-2"
+              >
+                <td className="py-2 px-3 text-brand">{u.email}</td>
+                <td className="py-2 px-3 text-ink">{u.name || "—"}</td>
+                <td className="py-2 px-3 text-ink-muted">{t(`roles.${u.role}`)}</td>
+                <td className="py-2 px-3">
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded ${
+                      u.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {u.status}
+                  </span>
+                </td>
+                <td className="py-2 px-3 text-ink-muted font-mono text-xs">{u.trackingId || "—"}</td>
+              </tr>
+            ))}
+            {users.length === 0 && (
+              <tr>
+                <td colSpan={5} className="py-8 text-center text-ink-muted">
+                  —
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      {selected && (
+        <UserPopup
+          user={selected}
+          onClose={() => setSelected(null)}
+          onChanged={() => {
+            setSelected(null);
+            load(q);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+interface Stats {
+  linkCount: number;
+  orderCount: number;
+  gmv: string;
+  commission: string;
+  currency: string;
+}
+
+function UserPopup({
+  user,
+  onClose,
+  onChanged,
+}: {
+  user: AdminUser;
+  onClose: () => void;
+  onChanged: () => void;
+}) {
+  const t = useTranslations();
+  const [form, setForm] = useState<AdminUser>(user);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/admin/users/${user.id}/stats`)
+      .then((r) => r.json())
+      .then((d) => setStats(d.stats))
+      .catch(() => {});
+  }, [user.id]);
+
+  async function patch(body: Record<string, unknown>) {
+    setSaving(true);
+    const res = await fetch(`/api/admin/users/${user.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
-    const body: { action: Action; trackingId?: string } = { action };
-    if (action === "assignTracking" || action === "approve") {
-      body.trackingId = (drafts[id] || "").trim();
-    }
-    try {
-      const res = await fetch(`/api/admin/users/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = (await res.json()) as PatchResponse;
-      if (data.error === "needs_tracking") {
-        setRowErrors((prev) => ({ ...prev, [id]: t("admin.needsTracking") }));
-        return;
-      }
-      if (!res.ok || data.error) {
-        setRowErrors((prev) => ({ ...prev, [id]: t("common.error") }));
-        return;
-      }
-      await load();
-    } catch {
-      setRowErrors((prev) => ({ ...prev, [id]: t("common.error") }));
-    } finally {
-      setBusy(null);
+    setSaving(false);
+    if (res.ok) onChanged();
+  }
+
+  async function del() {
+    if (!confirm(t("admin.confirmDelete"))) return;
+    const res = await fetch(`/api/admin/users/${user.id}`, { method: "DELETE" });
+    if (res.ok) onChanged();
+  }
+
+  function set<K extends keyof AdminUser>(k: K, v: AdminUser[K]) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-surface rounded-card w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-ink">{user.email}</h2>
+          <button onClick={onClose} className="text-ink-muted hover:text-ink">
+            ✕
+          </button>
+        </div>
+
+        <p className="text-xs text-ink-muted">
+          {t("admin.joined")}: {new Date(user.createdAt).toLocaleDateString()}
+        </p>
+
+        {/* Statistics (admin-only, includes commission) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <Stat label="Links" value={stats ? String(stats.linkCount) : "…"} />
+          <Stat label="Orders" value={stats ? String(stats.orderCount) : "…"} />
+          <Stat label="GMV" value={stats ? `${stats.currency} ${stats.gmv}` : "…"} />
+          <Stat label={t("admin.commission")} value={stats ? `${stats.currency} ${stats.commission}` : "…"} />
+        </div>
+
+        {/* Editable fields */}
+        <label className="text-sm text-ink-muted">
+          Name
+          <input className="input mt-1" value={form.name ?? ""} onChange={(e) => set("name", e.target.value)} />
+        </label>
+        <label className="text-sm text-ink-muted">
+          Email
+          <input className="input mt-1" value={form.email} onChange={(e) => set("email", e.target.value)} />
+        </label>
+        <label className="text-sm text-ink-muted">
+          {t("admin.trackingId")}
+          <input
+            className="input mt-1 font-mono"
+            value={form.trackingId ?? ""}
+            onChange={(e) => set("trackingId", e.target.value)}
+          />
+        </label>
+        <label className="text-sm text-ink-muted">
+          Role
+          <select className="input mt-1" value={form.role} onChange={(e) => set("role", e.target.value as Role)}>
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {t(`roles.${r}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="flex flex-wrap gap-3 text-sm">
+          {(["unlockedAi", "unlockedCart", "unlockedWishlist"] as const).map((k) => (
+            <label key={k} className="flex items-center gap-1 text-ink">
+              <input type="checkbox" checked={form[k]} onChange={(e) => set(k, e.target.checked)} />
+              {k.replace("unlocked", "")}
+            </label>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-line">
+          <button
+            disabled={saving}
+            onClick={() =>
+              patch({
+                name: form.name,
+                email: form.email,
+                role: form.role,
+                trackingId: form.trackingId || null,
+                unlockedAi: form.unlockedAi,
+                unlockedCart: form.unlockedCart,
+                unlockedWishlist: form.unlockedWishlist,
+              })
+            }
+            className="btn-primary"
+          >
+            {t("admin.save")}
+          </button>
+          {form.status === "ACTIVE" ? (
+            <button
+              onClick={() => patch({ status: "BANNED" })}
+              className="rounded-full px-4 py-2 text-sm border border-line text-ink hover:bg-surface-2"
+            >
+              {t("admin.ban")}
+            </button>
+          ) : (
+            <button
+              onClick={() => patch({ status: "ACTIVE" })}
+              className="rounded-full px-4 py-2 text-sm border border-line text-ink hover:bg-surface-2"
+            >
+              {t("admin.unban")}
+            </button>
+          )}
+          <button onClick={del} className="rounded-full px-4 py-2 text-sm bg-red-600 text-white hover:opacity-90">
+            {t("admin.delete")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-surface-2 rounded p-2">
+      <p className="text-[11px] text-ink-muted">{label}</p>
+      <p className="text-sm font-semibold text-ink">{value}</p>
+    </div>
+  );
+}
+
+/* ------------------------------ Orders ------------------------------ */
+function OrdersTab() {
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [summary, setSummary] = useState<{ count: number; gmv: string; commission: string; currency: string } | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/orders")
+      .then((r) => r.json())
+      .then((d) => {
+        setOrders(d.orders || []);
+        setSummary(d.summary || null);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div className="skeleton h-64 rounded-card" />;
+
+  return (
+    <div className="flex flex-col gap-4">
+      {summary && (
+        <div className="grid grid-cols-3 gap-3 sm:max-w-lg">
+          <Stat label="Orders" value={String(summary.count)} />
+          <Stat label="GMV" value={`${summary.currency} ${summary.gmv}`} />
+          <Stat label="Commission" value={`${summary.currency} ${summary.commission}`} />
+        </div>
+      )}
+      <div className="card overflow-x-auto p-0">
+        <table className="w-full min-w-[640px] text-sm">
+          <thead>
+            <tr className="text-left text-ink-muted border-b border-line">
+              <th className="py-2 px-3 font-medium">Product</th>
+              <th className="py-2 px-3 font-medium">Status</th>
+              <th className="py-2 px-3 font-medium">Value</th>
+              <th className="py-2 px-3 font-medium">Commission</th>
+              <th className="py-2 px-3 font-medium">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((o) => (
+              <tr key={o.orderId} className="border-b border-line last:border-0">
+                <td className="py-2 px-3 text-ink max-w-xs">
+                  <span className="line-clamp-2">{o.productTitle || o.orderId}</span>
+                </td>
+                <td className="py-2 px-3 text-ink-muted">{o.status || "—"}</td>
+                <td className="py-2 px-3 text-price">
+                  {o.currency} {o.orderValue || "—"}
+                </td>
+                <td className="py-2 px-3 text-ink-muted">{o.commission ?? "—"}</td>
+                <td className="py-2 px-3 text-ink-muted">{o.createdAt || "—"}</td>
+              </tr>
+            ))}
+            {orders.length === 0 && (
+              <tr>
+                <td colSpan={5} className="py-8 text-center text-ink-muted">
+                  —
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ Pricing ------------------------------ */
+function PricingTab() {
+  const t = useTranslations();
+  const [cfg, setCfg] = useState<Config | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/config")
+      .then((r) => r.json())
+      .then((d) => setCfg(d.config));
+  }, []);
+
+  if (!cfg) return <div className="skeleton h-48 rounded-card" />;
+
+  function set<K extends keyof Config>(k: K, v: Config[K]) {
+    setCfg((c) => (c ? { ...c, [k]: v } : c));
+  }
+
+  async function save() {
+    if (!cfg) return;
+    const res = await fetch("/api/admin/config", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        priceAi: cfg.priceAi,
+        priceCart: cfg.priceCart,
+        priceWishlist: cfg.priceWishlist,
+        priceBundle: cfg.priceBundle,
+        bundleEnabled: cfg.bundleEnabled,
+        currency: cfg.currency,
+        defaultTrackingId: cfg.defaultTrackingId || null,
+      }),
+    });
+    if (res.ok) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
     }
   }
 
-  const pending = users.filter((u) => u.status === "PENDING");
+  const num = (k: "priceAi" | "priceCart" | "priceWishlist" | "priceBundle", label: string) => (
+    <label className="text-sm text-ink-muted">
+      {label} ({cfg.currency}, minor units)
+      <input
+        type="number"
+        className="input mt-1"
+        value={cfg[k]}
+        onChange={(e) => set(k, Number(e.target.value))}
+      />
+    </label>
+  );
 
   return (
-    <div className="flex flex-col gap-8">
-      <h1 className="text-lg font-semibold text-ink">{t("admin.title")}</h1>
-
-      {loading ? (
-        <p className="text-ink-muted">{t("common.loading")}</p>
-      ) : error ? (
-        <div className="card border border-red-200 bg-red-50 text-red-700 text-sm">
-          {t("common.error")}
-        </div>
-      ) : (
-        <>
-          <section className="flex flex-col gap-3">
-            <h2 className="text-base font-semibold text-ink">{t("admin.pending")}</h2>
-            {pending.length === 0 ? (
-              <div className="card text-center text-ink-muted py-8">
-                No pending approvals
-              </div>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {pending.map((u) => (
-                  <li key={u.id} className="card flex flex-col gap-3">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-ink truncate">
-                          {u.name || u.email}
-                        </p>
-                        <p className="text-xs text-ink-muted truncate">{u.email}</p>
-                      </div>
-                      <span className="text-xs text-ink-muted">
-                        {formatDate(u.createdAt)}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap items-end gap-2">
-                      <label className="flex flex-col gap-1 text-xs text-ink-muted">
-                        {t("admin.trackingId")}
-                        <input
-                          className="input text-sm"
-                          value={drafts[u.id] ?? ""}
-                          placeholder={t("admin.trackingId")}
-                          onChange={(e) =>
-                            setDrafts((prev) => ({ ...prev, [u.id]: e.target.value }))
-                          }
-                        />
-                      </label>
-                      <button
-                        onClick={() => runAction(u.id, "assignTracking")}
-                        disabled={busy === u.id}
-                        className="rounded-full px-4 py-2 text-sm border border-line bg-surface text-ink hover:bg-surface-2 disabled:opacity-50"
-                      >
-                        {t("admin.assign")}
-                      </button>
-                      <button
-                        onClick={() => runAction(u.id, "approve")}
-                        disabled={busy === u.id}
-                        className="btn-primary text-sm disabled:opacity-50"
-                      >
-                        {t("admin.approve")}
-                      </button>
-                      <button
-                        onClick={() => runAction(u.id, "reject")}
-                        disabled={busy === u.id}
-                        className="rounded-full px-4 py-2 text-sm border border-red-200 text-red-700 bg-surface hover:bg-red-50 disabled:opacity-50"
-                      >
-                        {t("admin.reject")}
-                      </button>
-                    </div>
-
-                    {rowErrors[u.id] && (
-                      <p className="text-xs text-red-700">{rowErrors[u.id]}</p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="flex flex-col gap-3">
-            <h2 className="text-base font-semibold text-ink">{t("admin.users")}</h2>
-            <div className="card overflow-x-auto p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-line text-left text-ink-muted">
-                    <th className="px-3 py-2 font-medium">Email</th>
-                    <th className="px-3 py-2 font-medium">Status</th>
-                    <th className="px-3 py-2 font-medium">Role</th>
-                    <th className="px-3 py-2 font-medium">{t("admin.trackingId")}</th>
-                    <th className="px-3 py-2 font-medium">Created</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => (
-                    <tr key={u.id} className="border-b border-line last:border-0">
-                      <td className="px-3 py-2 text-ink">
-                        <span className="block truncate max-w-[220px]">{u.email}</span>
-                        {u.name && (
-                          <span className="block text-xs text-ink-muted truncate max-w-[220px]">
-                            {u.name}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_STYLES[u.status]}`}
-                        >
-                          {u.status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-ink-muted">{u.role}</td>
-                      <td className="px-3 py-2 text-ink-muted">
-                        {u.trackingId || "—"}
-                      </td>
-                      <td className="px-3 py-2 text-ink-muted whitespace-nowrap">
-                        {formatDate(u.createdAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </>
-      )}
+    <div className="card max-w-md flex flex-col gap-3">
+      {num("priceAi", t("pay.featureAi"))}
+      {num("priceCart", t("pay.featureCart"))}
+      {num("priceWishlist", t("pay.featureWishlist"))}
+      {num("priceBundle", t("pay.bundle"))}
+      <label className="flex items-center gap-2 text-sm text-ink">
+        <input type="checkbox" checked={cfg.bundleEnabled} onChange={(e) => set("bundleEnabled", e.target.checked)} />
+        Bundle enabled
+      </label>
+      <label className="text-sm text-ink-muted">
+        Currency
+        <input className="input mt-1" value={cfg.currency} onChange={(e) => set("currency", e.target.value.toUpperCase())} />
+      </label>
+      <label className="text-sm text-ink-muted">
+        Default tracking ID (USER role)
+        <input
+          className="input mt-1 font-mono"
+          value={cfg.defaultTrackingId ?? ""}
+          onChange={(e) => set("defaultTrackingId", e.target.value)}
+        />
+      </label>
+      <button onClick={save} className="btn-primary self-start">
+        {saved ? "✓" : t("admin.save")}
+      </button>
     </div>
   );
 }

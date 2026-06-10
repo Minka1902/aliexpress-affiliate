@@ -21,6 +21,8 @@ import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
 import { ProductGridSkeleton } from "@/components/Skeleton";
 import { useToast } from "@/components/Toast";
+import { useEntitlements } from "@/components/EntitlementsProvider";
+import { useRouter } from "next/navigation";
 
 const BRAND = "rgb(230,46,4)";
 const PIE_PALETTE = [
@@ -65,10 +67,16 @@ interface RecommendationsResponse {
 export default function Dashboard() {
   const t = useTranslations();
   const { toast } = useToast();
+  const router = useRouter();
+  const features = useEntitlements();
   const cart = useLocalList("cart");
   const wishlist = useLocalList("wishlist");
 
   function addToCart(p: Omit<LocalProduct, "addedAt">) {
+    if (!features.cart) {
+      router.push("/dashboard/pay");
+      return;
+    }
     const r = cart.add(p);
     if (r.ok) toast(t("toast.addedToCart"));
     else if (r.reason === "full") toast(t("toast.cartFull"), "error");
@@ -76,6 +84,10 @@ export default function Dashboard() {
   }
 
   function addToWishlist(p: Omit<LocalProduct, "addedAt">) {
+    if (!features.wishlist) {
+      router.push("/dashboard/pay");
+      return;
+    }
     const r = wishlist.add(p);
     if (r.ok) toast(t("toast.addedToWishlist"));
     else if (r.reason === "full") toast(t("toast.wishlistFull"), "error");

@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
 import { ProductGridSkeleton } from "@/components/Skeleton";
 import { useToast } from "@/components/Toast";
+import { useEntitlements } from "@/components/EntitlementsProvider";
 
 interface Similar extends ProductCardData {
   sourceUrl: string;
@@ -30,11 +31,17 @@ async function makeQr(text: string): Promise<string> {
 export function LinkGenerator() {
   const t = useTranslations();
   const { toast } = useToast();
+  const router = useRouter();
+  const features = useEntitlements();
   const search = useSearchParams();
   const cart = useLocalList("cart");
   const wishlist = useLocalList("wishlist");
 
   function addToCart(p: Omit<LocalProduct, "addedAt">) {
+    if (!features.cart) {
+      router.push("/dashboard/pay");
+      return;
+    }
     const r = cart.add(p);
     if (r.ok) toast(t("toast.addedToCart"));
     else if (r.reason === "full") toast(t("toast.cartFull"), "error");
@@ -42,6 +49,10 @@ export function LinkGenerator() {
   }
 
   function addToWishlist(p: Omit<LocalProduct, "addedAt">) {
+    if (!features.wishlist) {
+      router.push("/dashboard/pay");
+      return;
+    }
     const r = wishlist.add(p);
     if (r.ok) toast(t("toast.addedToWishlist"));
     else if (r.reason === "full") toast(t("toast.wishlistFull"), "error");
