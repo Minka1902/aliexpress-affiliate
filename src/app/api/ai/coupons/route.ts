@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApiUser } from "@/lib/auth";
+import { getApiUser, hasFeature } from "@/lib/auth";
 import { rateLimit, LIMITS } from "@/lib/ratelimit";
 import { aiCheckSchema } from "@/lib/validation";
 import { decryptSecret } from "@/lib/crypto";
@@ -17,8 +17,11 @@ interface Deal {
 // best price + coupon/promo suggestions for each cart item.
 export async function POST(req: NextRequest) {
   const user = await getApiUser();
-  if (!user || user.status !== "APPROVED") {
+  if (!user || user.status === "BANNED") {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (!hasFeature(user, "ai")) {
+    return NextResponse.json({ error: "locked", feature: "ai" }, { status: 403 });
   }
 
   const rl = rateLimit(`ai:${user.id}`, LIMITS.ai);

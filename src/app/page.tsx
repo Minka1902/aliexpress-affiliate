@@ -4,7 +4,6 @@ import { getCurrentUser } from "@/lib/auth";
 export default async function Home() {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
-  if (user.status === "PENDING") redirect("/pending");
-  if (user.status !== "APPROVED") redirect("/signin");
+  if (user.status === "BANNED") redirect("/banned");
   redirect("/dashboard");
 }

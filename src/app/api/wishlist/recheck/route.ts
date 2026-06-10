@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApiUser } from "@/lib/auth";
+import { getApiUser, hasFeature } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { rateLimit, LIMITS } from "@/lib/ratelimit";
 import { wishlistRecheckSchema } from "@/lib/validation";
@@ -9,8 +9,11 @@ import { resolveLink } from "@/lib/aliexpress/eligibility";
 // returns a hidden proxy link; for still-ineligible items it returns a similar eligible one.
 export async function POST(req: NextRequest) {
   const user = await getApiUser();
-  if (!user || user.status !== "APPROVED" || !user.trackingId) {
+  if (!user || user.status === "BANNED" || !user.trackingId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (!hasFeature(user, "wishlist")) {
+    return NextResponse.json({ error: "locked", feature: "wishlist" }, { status: 403 });
   }
 
   const rl = rateLimit(`recheck:${user.id}`, LIMITS.wishlistRecheck);

@@ -7,7 +7,7 @@ import { resolveLink } from "@/lib/aliexpress/eligibility";
 
 export async function POST(req: NextRequest) {
   const user = await getApiUser();
-  if (!user || user.status !== "APPROVED") {
+  if (!user || user.status === "BANNED") {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   if (!user.trackingId) {

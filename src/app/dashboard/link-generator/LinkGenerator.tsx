@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { isAliExpressUrl, extractAliExpressUrl } from "@/lib/aliexpress/match-url";
 import { useTranslations } from "next-intl";
-import { useLocalList } from "@/hooks/useLocalList";
+import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
+import { ProductGridSkeleton } from "@/components/Skeleton";
+import { useToast } from "@/components/Toast";
+import { useEntitlements } from "@/components/EntitlementsProvider";
 
 interface Similar extends ProductCardData {
   sourceUrl: string;
@@ -27,33 +31,78 @@ async function makeQr(text: string): Promise<string> {
 
 export function LinkGenerator() {
   const t = useTranslations();
+  const { toast } = useToast();
+  const router = useRouter();
+  const features = useEntitlements();
   const search = useSearchParams();
   const cart = useLocalList("cart");
   const wishlist = useLocalList("wishlist");
+
+  function addToCart(p: Omit<LocalProduct, "addedAt">) {
+    if (!features.cart) {
+      router.push("/dashboard/pay");
+      return;
+    }
+    const r = cart.add(p);
+    if (r.ok) toast(t("toast.addedToCart"));
+    else if (r.reason === "full") toast(t("toast.cartFull"), "error");
+    else toast(t("toast.alreadyAdded"), "info");
+  }
+
+  function addToWishlist(p: Omit<LocalProduct, "addedAt">) {
+    if (!features.wishlist) {
+      router.push("/dashboard/pay");
+      return;
+    }
+    const r = wishlist.add(p);
+    if (r.ok) toast(t("toast.addedToWishlist"));
+    else if (r.reason === "full") toast(t("toast.wishlistFull"), "error");
+    else toast(t("toast.alreadyAdded"), "info");
+  }
   const [text, setText] = useState("");
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
   const [qr, setQr] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Web Share Target: prefill from ?shared= / ?text= / ?url=
+  const autoRan = useRef(false);
+
+  // Web Share Target / clipboard paste: prefill from ?shared= / ?text= / ?url=, and
+  // auto-generate when arriving with ?auto=1.
   useEffect(() => {
     const shared = search.get("shared") || search.get("url") || search.get("text");
-    if (shared) setText((prev) => (prev ? prev : shared));
+    if (!shared) return;
+    setText((prev) => (prev ? prev : shared));
+    if (search.get("auto") === "1" && !autoRan.current && isAliExpressUrl(shared)) {
+      autoRan.current = true;
+      void submitUrls([shared]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
-  async function submit() {
-    const urls = text
-      .split(/[\n,]+/)
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .slice(0, 10);
-    if (urls.length === 0) return;
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      const url = extractAliExpressUrl(text);
+      if (url) {
+        setText((prev) => (prev ? `${prev}\n${url}` : url));
+        toast(t("toast.copied"));
+      } else {
+        toast(t("clipboard.noLink"), "info");
+      }
+    } catch {
+      toast(t("clipboard.noLink"), "info");
+    }
+  }
+
+  async function submitUrls(urls: string[]) {
+    const clean = urls.map((s) => s.trim()).filter(Boolean).slice(0, 10);
+    if (clean.length === 0) return;
     setLoading(true);
     const res = await fetch("/api/link/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urls }),
+      body: JSON.stringify({ urls: clean }),
     });
     setLoading(false);
     if (!res.ok) return;
@@ -67,9 +116,14 @@ export function LinkGenerator() {
     setQr(qrs);
   }
 
+  function submit() {
+    void submitUrls(text.split(/[\n,]+/));
+  }
+
   function copy(text: string, id: string) {
     navigator.clipboard.writeText(text);
     setCopied(id);
+    toast(t("toast.copied"));
     setTimeout(() => setCopied(null), 1500);
   }
 
@@ -84,10 +138,21 @@ export function LinkGenerator() {
           placeholder={t("link.placeholder")}
           className="input resize-y"
         />
-        <button onClick={submit} disabled={loading} className="btn-primary mt-3">
-          {loading ? t("common.loading") : t("link.generate")}
-        </button>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button onClick={submit} disabled={loading} className="btn-primary inline-flex items-center gap-2">
+            {loading && <span className="spinner" />}
+            {loading ? t("common.loading") : t("link.generate")}
+          </button>
+          <button
+            onClick={pasteFromClipboard}
+            className="rounded-full px-4 py-2 text-sm border border-line bg-surface text-ink hover:bg-surface-2"
+          >
+            {t("link.pasteFromClipboard")}
+          </button>
+        </div>
       </div>
+
+      {loading && results.length === 0 && <ProductGridSkeleton count={4} />}
 
       {results.map((r) => (
         <div key={r.id} className="card">
@@ -110,7 +175,7 @@ export function LinkGenerator() {
                 </div>
                 <button
                   onClick={() =>
-                    cart.add({
+                    addToCart({
                       productId: r.productId || r.id,
                       title: r.product?.title,
                       imageUrl: r.product?.imageUrl,
@@ -138,7 +203,7 @@ export function LinkGenerator() {
               <button
                 onClick={() =>
                   r.productId &&
-                  wishlist.add({ productId: r.productId, sourceUrl: r.sourceUrl })
+                  addToWishlist({ productId: r.productId, sourceUrl: r.sourceUrl })
                 }
                 className="mt-2 text-sm text-brand font-medium"
               >
@@ -154,7 +219,16 @@ export function LinkGenerator() {
                         product={p}
                         actionLabel={t("link.addToCart")}
                         onAction={() =>
-                          cart.add({
+                          addToCart({
+                            productId: p.productId,
+                            title: p.title,
+                            imageUrl: p.imageUrl,
+                            salePrice: p.salePrice,
+                            sourceUrl: p.sourceUrl,
+                          })
+                        }
+                        onWishlist={() =>
+                          addToWishlist({
                             productId: p.productId,
                             title: p.title,
                             imageUrl: p.imageUrl,

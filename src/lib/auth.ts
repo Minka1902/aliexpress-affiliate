@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "./prisma";
 import { getSession } from "./session";
+import { entitlements, isAdminRole, type Feature } from "./roles";
 import type { User } from "@prisma/client";
 
 /** Loads the full DB user for the current session, or null. SERVER-ONLY. */
@@ -11,12 +12,11 @@ export async function getCurrentUser(): Promise<User | null> {
   return user;
 }
 
-/** Requires an APPROVED user; redirects otherwise. Returns the full user (server-only). */
+/** Requires an active (non-banned) user; redirects otherwise. Returns the full user. */
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
-  if (user.status === "PENDING") redirect("/pending");
-  if (user.status !== "APPROVED") redirect("/signin");
+  if (user.status === "BANNED") redirect("/banned");
   return user;
 }
 
@@ -24,8 +24,7 @@ export async function requireUser(): Promise<User> {
 export async function requireAdmin(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) redirect("/signin");
-  const isAdmin = user.role === "ADMIN" && user.email === process.env.ADMIN_EMAIL;
-  if (!isAdmin) redirect("/dashboard");
+  if (!isAdminRole(user)) redirect("/dashboard");
   return user;
 }
 
@@ -35,5 +34,11 @@ export async function getApiUser(): Promise<User | null> {
 }
 
 export function isAdminUser(user: User | null): boolean {
-  return !!user && user.role === "ADMIN" && user.email === process.env.ADMIN_EMAIL;
+  return !!user && isAdminRole(user);
+}
+
+/** True if the user is active and entitled to a given paid feature. */
+export function hasFeature(user: User | null, feature: Feature): boolean {
+  if (!user || user.status === "BANNED") return false;
+  return entitlements(user)[feature];
 }

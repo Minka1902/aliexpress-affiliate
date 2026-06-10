@@ -16,8 +16,19 @@
     "signin": "Sign in",
     "signup": "Sign up",
     "signout": "Sign out",
-    "takeTour": "Take the tour"
+    "takeTour": "Take the tour",
+    "account": "Account",
+    "search": "Paste a link…"
   },
+  "toast": {
+    "addedToCart": "Added to cart",
+    "addedToWishlist": "Added to wishlist",
+    "cartFull": "Cart is full (max 10)",
+    "wishlistFull": "Wishlist is full (max 10)",
+    "alreadyAdded": "Already added",
+    "copied": "Link copied"
+  },
+  "card": { "freeShipping": "Free shipping" },
   "auth": {
     "email": "Email",
     "password": "Password",
@@ -29,11 +40,39 @@
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
     "invalid": "Invalid email or password",
-    "exists": "An account with this email already exists"
+    "exists": "An account with this email already exists",
+    "banned": "This account has been suspended"
   },
-  "pending": {
-    "title": "Awaiting approval",
-    "body": "Your account was created and is waiting for the admin to approve it. You'll get an email once you're approved."
+  "banned": {
+    "title": "Account suspended",
+    "body": "Your account has been suspended. Please contact the administrator if you think this is a mistake."
+  },
+  "roles": {
+    "USER": "User",
+    "FAMILY": "Family",
+    "PARTNERS_FAMILY": "Partner's family",
+    "FRIENDS": "Friends",
+    "PARTNERS_FRIENDS": "Partner's friends",
+    "ADMIN": "Admin"
+  },
+  "pay": {
+    "title": "Unlock features",
+    "subtitle": "Get more out of the app",
+    "owned": "Unlocked",
+    "unlock": "Unlock",
+    "bundle": "Bundle — all features",
+    "bestValue": "Best value",
+    "featureAi": "AI assistant (coupons + safety check)",
+    "featureCart": "Cart",
+    "featureWishlist": "Wishlist",
+    "unlocked": "Unlocked!",
+    "locked": "Locked — unlock to use",
+    "goUnlock": "Unlock this feature"
+  },
+  "onboarding": {
+    "title": "Welcome! Let's set things up",
+    "subtitle": "Choose your theme and language. You can change these later in Settings.",
+    "start": "Get started"
   },
   "link": {
     "title": "Affiliate Link Generator",
@@ -46,7 +85,15 @@
     "addToCart": "Add to cart",
     "addToWishlist": "Add to wishlist",
     "whyNotEligible": "This product isn't in the affiliate program, so no commissionable link can be made. Here are similar products that are eligible:",
-    "similar": "Similar eligible products"
+    "similar": "Similar eligible products",
+    "pasteFromClipboard": "Paste from clipboard"
+  },
+  "clipboard": {
+    "detected": "Detected an AliExpress link — paste it?",
+    "paste": "Paste",
+    "dismiss": "Dismiss",
+    "dontAsk": "Don't ask again",
+    "noLink": "No AliExpress link on the clipboard"
   },
   "cart": { "title": "Cart", "empty": "Your cart is empty", "aiCheck": "AI safety + deals check", "max": "Cart is full (max 10)" },
   "wishlist": { "title": "Wishlist", "empty": "Your wishlist is empty", "max": "Wishlist is full (max 10)", "nowEligible": "Now available as an affiliate link!", "stillNot": "Still not eligible — here's a similar one" },
@@ -70,7 +117,8 @@
     "aiKey": "Your API key",
     "aiKeyHint": "Stored encrypted. Leave blank to use the free built-in overview.",
     "save": "Save",
-    "saved": "Saved"
+    "saved": "Saved",
+    "clipboardAutoDetect": "Auto-detect AliExpress links on the clipboard"
   },
   "themes": { "aliexpress": "AliExpress Light", "dark": "Dark", "contrast": "High Contrast" },
   "admin": {
@@ -82,7 +130,22 @@
     "trackingId": "Tracking ID",
     "assign": "Assign",
     "needsTracking": "Assign a tracking ID before approving",
-    "earnings": "Earnings (admin only)"
+    "earnings": "Earnings (admin only)",
+    "search": "Search by name or email",
+    "allOrders": "All orders & shipments",
+    "pricing": "Feature pricing",
+    "seed": "Seed",
+    "seedOn": "Seed mode ON (refresh to exit)",
+    "ban": "Ban",
+    "unban": "Unban",
+    "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save",
+    "joined": "Joined",
+    "statistics": "Statistics",
+    "commission": "Commission",
+    "confirmDelete": "Delete this user permanently?"
   },
-  "common": { "loading": "Loading…", "error": "Something went wrong", "save": "Save" }
+  "nav2": { "pay": "Unlock" },
+  "common": { "loading": "Loading…", "error": "Something went wrong", "save": "Save", "clear": "Clear", "remove": "Remove", "proceed": "Proceed to checkout" }
 }

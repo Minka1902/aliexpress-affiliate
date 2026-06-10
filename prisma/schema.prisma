@@ -13,13 +13,16 @@ datasource db {
 
 enum Role {
   USER
+  FAMILY
+  PARTNERS_FAMILY
+  FRIENDS
+  PARTNERS_FRIENDS
   ADMIN
 }
 
 enum Status {
-  PENDING
-  APPROVED
-  REJECTED
+  ACTIVE
+  BANNED
 }
 
 model User {
@@ -28,10 +31,19 @@ model User {
   name         String?
   passwordHash String
   role         Role     @default(USER)
-  status       Status   @default(PENDING)
+  status       Status   @default(ACTIVE)
 
-  // SERVER-ONLY: the AliExpress tracking (affiliate) ID assigned by the admin.
+  // SERVER-ONLY: the AliExpress tracking (affiliate) ID.
+  // USER role = default (shared) tracking id; privileged roles = personal id.
   trackingId   String?
+
+  // Paid feature unlocks (admin & privileged roles are entitled regardless — see lib/roles.ts)
+  unlockedAi       Boolean @default(false)
+  unlockedCart     Boolean @default(false)
+  unlockedWishlist Boolean @default(false)
+
+  // First-login onboarding (theme/language) completed at
+  onboardedAt  DateTime?
 
   // Preferences
   theme        String?  @default("aliexpress")
@@ -52,6 +64,19 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Single-row app configuration controlled by the admin.
+model AppConfig {
+  id               Int      @id @default(1)
+  priceAi          Int      @default(500)  // minor units (e.g. cents)
+  priceCart        Int      @default(300)
+  priceWishlist    Int      @default(300)
+  priceBundle      Int      @default(900)
+  bundleEnabled    Boolean  @default(true)
+  currency         String   @default("USD")
+  defaultTrackingId String?
+  updatedAt        DateTime @updatedAt
 }
 
 model GeneratedLink {

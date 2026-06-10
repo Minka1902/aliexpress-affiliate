@@ -18,7 +18,11 @@ import {
   Legend,
 } from "recharts";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
-import { useLocalList } from "@/hooks/useLocalList";
+import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
+import { ProductGridSkeleton } from "@/components/Skeleton";
+import { useToast } from "@/components/Toast";
+import { useEntitlements } from "@/components/EntitlementsProvider";
+import { useRouter } from "next/navigation";
 
 const BRAND = "rgb(230,46,4)";
 const PIE_PALETTE = [
@@ -62,7 +66,33 @@ interface RecommendationsResponse {
 
 export default function Dashboard() {
   const t = useTranslations();
+  const { toast } = useToast();
+  const router = useRouter();
+  const features = useEntitlements();
   const cart = useLocalList("cart");
+  const wishlist = useLocalList("wishlist");
+
+  function addToCart(p: Omit<LocalProduct, "addedAt">) {
+    if (!features.cart) {
+      router.push("/dashboard/pay");
+      return;
+    }
+    const r = cart.add(p);
+    if (r.ok) toast(t("toast.addedToCart"));
+    else if (r.reason === "full") toast(t("toast.cartFull"), "error");
+    else toast(t("toast.alreadyAdded"), "info");
+  }
+
+  function addToWishlist(p: Omit<LocalProduct, "addedAt">) {
+    if (!features.wishlist) {
+      router.push("/dashboard/pay");
+      return;
+    }
+    const r = wishlist.add(p);
+    if (r.ok) toast(t("toast.addedToWishlist"));
+    else if (r.reason === "full") toast(t("toast.wishlistFull"), "error");
+    else toast(t("toast.alreadyAdded"), "info");
+  }
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [summary, setSummary] = useState<OrdersSummary | null>(null);
@@ -132,7 +162,15 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-ink-muted">{t("common.loading")}</div>
+      <div className="flex flex-col gap-6">
+        <h1 className="text-2xl font-bold text-ink">{t("dashboard.title")}</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="card h-20 skeleton" />
+          <div className="card h-20 skeleton" />
+          <div className="card h-20 skeleton" />
+        </div>
+        <ProductGridSkeleton count={8} />
+      </div>
     );
   }
 
@@ -256,7 +294,17 @@ export default function Dashboard() {
                 product={p}
                 actionLabel={t("link.addToCart")}
                 onAction={(prod) =>
-                  cart.add({
+                  addToCart({
+                    productId: prod.productId,
+                    title: prod.title,
+                    imageUrl: prod.imageUrl,
+                    salePrice: prod.salePrice,
+                    currency: prod.currency,
+                    sourceUrl: prod.sourceUrl,
+                  })
+                }
+                onWishlist={(prod) =>
+                  addToWishlist({
                     productId: prod.productId,
                     title: prod.title,
                     imageUrl: prod.imageUrl,

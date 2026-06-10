@@ -2,23 +2,7 @@
 // /i/<id>.html, query params, locale variants, and short/redirect links (resolved
 // server-side with an SSRF host allowlist).
 
-const ALLOWED_HOSTS = [
-  "aliexpress.com",
-  "aliexpress.us",
-  "aliexpress.ru",
-  "alibaba.com",
-  "click.aliexpress.com",
-  "s.click.aliexpress.com",
-  "a.aliexpress.com",
-  "m.aliexpress.com",
-  "best.aliexpress.com",
-  "campaign.aliexpress.com",
-];
-
-function hostAllowed(hostname: string): boolean {
-  const h = hostname.toLowerCase();
-  return ALLOWED_HOSTS.some((allowed) => h === allowed || h.endsWith(`.${allowed}`));
-}
+import { hostAllowed } from "./match-url";
 
 function extractIdFromUrl(u: URL): string | null {
   // /item/1005006067128597.html  or /i/1005....html

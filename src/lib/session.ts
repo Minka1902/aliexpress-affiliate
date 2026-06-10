@@ -5,8 +5,8 @@ import { cookies } from "next/headers";
 // trackingId, AI keys, or any commission data.
 export interface SessionData {
   userId?: string;
-  role?: "USER" | "ADMIN";
-  status?: "PENDING" | "APPROVED" | "REJECTED";
+  role?: "USER" | "FAMILY" | "PARTNERS_FAMILY" | "FRIENDS" | "PARTNERS_FRIENDS" | "ADMIN";
+  status?: "ACTIVE" | "BANNED";
 }
 
 export const sessionOptions: SessionOptions = {

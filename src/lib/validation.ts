@@ -26,11 +26,42 @@ export const settingsSchema = z.object({
   shipToCountry: z.string().trim().length(2).optional(),
   aiProvider: z.enum(["claude", "openai", "gemini"]).nullable().optional(),
   aiKey: z.string().trim().max(400).nullable().optional(),
+  onboarded: z.boolean().optional(),
 });
 
-export const adminUserActionSchema = z.object({
-  action: z.enum(["approve", "reject", "assignTracking"]),
-  trackingId: z.string().trim().max(120).optional(),
+export const ROLES = [
+  "USER",
+  "FAMILY",
+  "PARTNERS_FAMILY",
+  "FRIENDS",
+  "PARTNERS_FRIENDS",
+  "ADMIN",
+] as const;
+
+// Admin edits a user (any subset of fields).
+export const adminUserEditSchema = z.object({
+  name: z.string().trim().max(80).optional(),
+  email: z.string().trim().email().max(200).optional(),
+  role: z.enum(ROLES).optional(),
+  trackingId: z.string().trim().max(120).nullable().optional(),
+  status: z.enum(["ACTIVE", "BANNED"]).optional(),
+  unlockedAi: z.boolean().optional(),
+  unlockedCart: z.boolean().optional(),
+  unlockedWishlist: z.boolean().optional(),
+});
+
+export const adminConfigSchema = z.object({
+  priceAi: z.number().int().min(0).max(1_000_000).optional(),
+  priceCart: z.number().int().min(0).max(1_000_000).optional(),
+  priceWishlist: z.number().int().min(0).max(1_000_000).optional(),
+  priceBundle: z.number().int().min(0).max(1_000_000).optional(),
+  bundleEnabled: z.boolean().optional(),
+  currency: z.string().trim().min(1).max(8).optional(),
+  defaultTrackingId: z.string().trim().max(120).nullable().optional(),
+});
+
+export const paySchema = z.object({
+  target: z.enum(["ai", "cart", "wishlist", "bundle"]),
 });
 
 export const aiCheckSchema = z.object({

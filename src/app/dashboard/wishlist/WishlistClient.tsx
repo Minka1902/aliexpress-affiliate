@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
+import { EmptyState } from "@/components/EmptyState";
+import { useToast } from "@/components/Toast";
+import { useEntitlements } from "@/components/EntitlementsProvider";
+import { Paywall } from "@/components/Paywall";
 
 interface Suggestion {
   productId: string;
@@ -26,6 +30,8 @@ interface RecheckResponse {
 
 export function WishlistClient() {
   const t = useTranslations();
+  const { toast } = useToast();
+  const features = useEntitlements();
   const wishlist = useLocalList("wishlist");
   const cart = useLocalList("cart");
   const [results, setResults] = useState<Record<string, RecheckResult>>({});
@@ -36,7 +42,7 @@ export function WishlistClient() {
   const checkedRef = useRef(false);
 
   useEffect(() => {
-    if (!wishlist.ready || checkedRef.current) return;
+    if (!features.wishlist || !wishlist.ready || checkedRef.current) return;
     checkedRef.current = true;
     if (wishlist.items.length === 0) return;
 
@@ -56,44 +62,48 @@ export function WishlistClient() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [wishlist.ready, wishlist.items]);
+  }, [features.wishlist, wishlist.ready, wishlist.items]);
 
   function copyLink(id: string, url: string) {
     navigator.clipboard.writeText(url);
     setCopied(id);
+    toast(t("toast.copied"));
     setTimeout(() => setCopied((c) => (c === id ? null : c)), 1500);
   }
 
-  function addToCart(p: Omit<LocalProduct, "addedAt">) {
-    const r = cart.add(p);
+  function reportAdd(productId: string, r: { ok: boolean; reason?: "exists" | "full" }) {
+    if (r.ok) toast(t("toast.addedToCart"));
+    else if (r.reason === "full") toast(t("toast.cartFull"), "error");
+    else toast(t("toast.alreadyAdded"), "info");
     setAdded((prev) => ({
       ...prev,
-      [p.productId]: r.ok
+      [productId]: r.ok
         ? t("link.addToCart")
         : r.reason === "full"
           ? t("cart.max")
-          : "Already in cart",
+          : t("toast.alreadyAdded"),
     }));
   }
 
-  function addSuggestion(s: Suggestion) {
-    const r = cart.add({
-      productId: s.productId,
-      title: s.title,
-      imageUrl: s.imageUrl,
-      salePrice: s.salePrice,
-      currency: s.currency,
-      sourceUrl: s.sourceUrl,
-    });
-    setAdded((prev) => ({
-      ...prev,
-      [s.productId]: r.ok
-        ? t("link.addToCart")
-        : r.reason === "full"
-          ? t("cart.max")
-          : "Already in cart",
-    }));
+  function addToCart(p: Omit<LocalProduct, "addedAt">) {
+    reportAdd(p.productId, cart.add(p));
   }
+
+  function addSuggestion(s: Suggestion) {
+    reportAdd(
+      s.productId,
+      cart.add({
+        productId: s.productId,
+        title: s.title,
+        imageUrl: s.imageUrl,
+        salePrice: s.salePrice,
+        currency: s.currency,
+        sourceUrl: s.sourceUrl,
+      })
+    );
+  }
+
+  if (!features.wishlist) return <Paywall title={t("pay.featureWishlist")} />;
 
   return (
     <div className="flex flex-col gap-6">
@@ -107,9 +117,12 @@ export function WishlistClient() {
       {!wishlist.ready ? (
         <p className="text-ink-muted">{t("common.loading")}</p>
       ) : wishlist.items.length === 0 ? (
-        <div className="card text-center text-ink-muted py-10">
-          {t("wishlist.empty")}
-        </div>
+        <EmptyState
+          icon="♡"
+          message={t("wishlist.empty")}
+          ctaHref="/dashboard/link-generator"
+          ctaLabel={t("nav.linkGenerator")}
+        />
       ) : (
         <>
           {loading && <p className="text-sm text-ink-muted">{t("common.loading")}</p>}
@@ -150,10 +163,13 @@ export function WishlistClient() {
                       )}
                     </div>
                     <button
-                      onClick={() => wishlist.remove(p.productId)}
+                      onClick={() => {
+                        wishlist.remove(p.productId);
+                        toast(t("common.remove"), "info");
+                      }}
                       className="self-start text-sm text-ink-muted hover:text-brand"
                     >
-                      Remove
+                      {t("common.remove")}
                     </button>
                   </div>
 

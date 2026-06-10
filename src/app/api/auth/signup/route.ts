@@ -4,6 +4,7 @@ import { hashPassword } from "@/lib/password";
 import { getSession } from "@/lib/session";
 import { signupSchema } from "@/lib/validation";
 import { notifyAdminOfSignup } from "@/lib/mailer";
+import { defaultTrackingId } from "@/lib/config";
 import { toPublicUser } from "@/dto/user";
 
 export async function POST(req: NextRequest) {
@@ -23,17 +24,18 @@ export async function POST(req: NextRequest) {
   const isAdmin = normalizedEmail === process.env.ADMIN_EMAIL?.toLowerCase();
   const passwordHash = await hashPassword(password);
 
+  // No approval needed: new users are ACTIVE, role USER, and get the default tracking id.
   const user = await prisma.user.create({
     data: {
       name,
       email: normalizedEmail,
       passwordHash,
       role: isAdmin ? "ADMIN" : "USER",
-      status: isAdmin ? "APPROVED" : "PENDING",
+      status: "ACTIVE",
+      trackingId: isAdmin ? null : await defaultTrackingId(),
     },
   });
 
-  // Establish a session immediately; status gating handles access.
   const session = await getSession();
   session.userId = user.id;
   session.role = user.role;

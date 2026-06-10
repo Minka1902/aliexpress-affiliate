@@ -19,6 +19,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid" }, { status: 401 });
   }
 
+  if (user.status === "BANNED") {
+    return NextResponse.json({ error: "banned" }, { status: 403 });
+  }
+
   const session = await getSession();
   session.userId = user.id;
   session.role = user.role;
