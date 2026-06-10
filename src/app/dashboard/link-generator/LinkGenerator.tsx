@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useLocalList } from "@/hooks/useLocalList";
+import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
 import { ProductCard, type ProductCardData } from "@/components/ProductCard";
+import { ProductGridSkeleton } from "@/components/Skeleton";
+import { useToast } from "@/components/Toast";
 
 interface Similar extends ProductCardData {
   sourceUrl: string;
@@ -27,9 +29,24 @@ async function makeQr(text: string): Promise<string> {
 
 export function LinkGenerator() {
   const t = useTranslations();
+  const { toast } = useToast();
   const search = useSearchParams();
   const cart = useLocalList("cart");
   const wishlist = useLocalList("wishlist");
+
+  function addToCart(p: Omit<LocalProduct, "addedAt">) {
+    const r = cart.add(p);
+    if (r.ok) toast(t("toast.addedToCart"));
+    else if (r.reason === "full") toast(t("toast.cartFull"), "error");
+    else toast(t("toast.alreadyAdded"), "info");
+  }
+
+  function addToWishlist(p: Omit<LocalProduct, "addedAt">) {
+    const r = wishlist.add(p);
+    if (r.ok) toast(t("toast.addedToWishlist"));
+    else if (r.reason === "full") toast(t("toast.wishlistFull"), "error");
+    else toast(t("toast.alreadyAdded"), "info");
+  }
   const [text, setText] = useState("");
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,6 +87,7 @@ export function LinkGenerator() {
   function copy(text: string, id: string) {
     navigator.clipboard.writeText(text);
     setCopied(id);
+    toast(t("toast.copied"));
     setTimeout(() => setCopied(null), 1500);
   }
 
@@ -84,10 +102,13 @@ export function LinkGenerator() {
           placeholder={t("link.placeholder")}
           className="input resize-y"
         />
-        <button onClick={submit} disabled={loading} className="btn-primary mt-3">
+        <button onClick={submit} disabled={loading} className="btn-primary mt-3 inline-flex items-center gap-2">
+          {loading && <span className="spinner" />}
           {loading ? t("common.loading") : t("link.generate")}
         </button>
       </div>
+
+      {loading && results.length === 0 && <ProductGridSkeleton count={4} />}
 
       {results.map((r) => (
         <div key={r.id} className="card">
@@ -110,7 +131,7 @@ export function LinkGenerator() {
                 </div>
                 <button
                   onClick={() =>
-                    cart.add({
+                    addToCart({
                       productId: r.productId || r.id,
                       title: r.product?.title,
                       imageUrl: r.product?.imageUrl,
@@ -138,7 +159,7 @@ export function LinkGenerator() {
               <button
                 onClick={() =>
                   r.productId &&
-                  wishlist.add({ productId: r.productId, sourceUrl: r.sourceUrl })
+                  addToWishlist({ productId: r.productId, sourceUrl: r.sourceUrl })
                 }
                 className="mt-2 text-sm text-brand font-medium"
               >
@@ -154,7 +175,16 @@ export function LinkGenerator() {
                         product={p}
                         actionLabel={t("link.addToCart")}
                         onAction={() =>
-                          cart.add({
+                          addToCart({
+                            productId: p.productId,
+                            title: p.title,
+                            imageUrl: p.imageUrl,
+                            salePrice: p.salePrice,
+                            sourceUrl: p.sourceUrl,
+                          })
+                        }
+                        onWishlist={() =>
+                          addToWishlist({
                             productId: p.productId,
                             title: p.title,
                             imageUrl: p.imageUrl,

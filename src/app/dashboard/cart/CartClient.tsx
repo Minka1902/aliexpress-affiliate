@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useLocalList, type LocalProduct } from "@/hooks/useLocalList";
+import { EmptyState } from "@/components/EmptyState";
+import { useToast } from "@/components/Toast";
 
 type Verdict = "Safe" | "Caution" | "Avoid";
 
@@ -49,6 +51,7 @@ const VERDICT_STYLES: Record<Verdict, string> = {
 
 export function CartClient() {
   const t = useTranslations();
+  const { toast } = useToast();
   const cart = useLocalList("cart");
   const [ai, setAi] = useState<AiState | null>(null);
 
@@ -135,10 +138,13 @@ export function CartClient() {
         </h1>
         {cart.ready && cart.items.length > 0 && (
           <button
-            onClick={cart.clear}
+            onClick={() => {
+              cart.clear();
+              toast(t("common.clear"), "info");
+            }}
             className="text-sm text-ink-muted hover:text-ink"
           >
-            Clear
+            {t("common.clear")}
           </button>
         )}
       </div>
@@ -146,35 +152,14 @@ export function CartClient() {
       {!cart.ready ? (
         <p className="text-ink-muted">{t("common.loading")}</p>
       ) : cart.items.length === 0 ? (
-        <div className="card text-center text-ink-muted py-10">{t("cart.empty")}</div>
+        <EmptyState
+          icon="🛒"
+          message={t("cart.empty")}
+          ctaHref="/dashboard/link-generator"
+          ctaLabel={t("nav.linkGenerator")}
+        />
       ) : (
         <>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={runAiCheck}
-              disabled={ai?.loading}
-              className="btn-primary"
-            >
-              {ai?.loading ? t("common.loading") : t("cart.aiCheck")}
-            </button>
-            <button
-              onClick={checkout}
-              className="rounded-full px-5 py-2 font-medium border border-line bg-surface text-ink hover:bg-surface-2"
-            >
-              Proceed to checkout
-            </button>
-          </div>
-
-          {missingLinks > 0 && (
-            <p className="text-sm text-ink-muted">
-              {missingLinks} item(s) don&apos;t have a generated affiliate link yet and
-              won&apos;t open at checkout.{" "}
-              <Link href="/dashboard/link-generator" className="text-brand underline">
-                Generate links
-              </Link>
-            </p>
-          )}
-
           {ai?.noAi && (
             <div className="card border border-amber-200 bg-amber-50 text-amber-900 text-sm">
               No AI provider is configured, so a free built-in overview is used.{" "}
@@ -199,17 +184,54 @@ export function CartClient() {
             </p>
           )}
 
+          {missingLinks > 0 && (
+            <p className="text-sm text-ink-muted">
+              {missingLinks} item(s) don&apos;t have a generated affiliate link yet and
+              won&apos;t open at checkout.{" "}
+              <Link href="/dashboard/link-generator" className="text-brand underline">
+                {t("nav.linkGenerator")}
+              </Link>
+            </p>
+          )}
+
           <ul className="flex flex-col gap-3">
             {cart.items.map((p) => (
               <CartRow
                 key={p.productId}
                 product={p}
-                onRemove={() => cart.remove(p.productId)}
+                onRemove={() => {
+                  cart.remove(p.productId);
+                  toast(t("common.remove"), "info");
+                }}
                 verdict={ai?.verdicts[p.productId]}
                 deal={ai?.deals[p.productId]}
               />
             ))}
           </ul>
+
+          {/* Sticky action bar — always reachable while scrolling */}
+          <div className="sticky bottom-20 md:bottom-4 z-30">
+            <div className="card shadow-lg flex flex-wrap items-center gap-3">
+              <span className="text-sm text-ink-muted">
+                {cart.items.length} / {cart.max}
+              </span>
+              <div className="flex-1" />
+              <button
+                onClick={runAiCheck}
+                disabled={ai?.loading}
+                className="btn-primary inline-flex items-center gap-2"
+              >
+                {ai?.loading && <span className="spinner" />}
+                {ai?.loading ? t("common.loading") : t("cart.aiCheck")}
+              </button>
+              <button
+                onClick={checkout}
+                className="rounded-full px-5 py-2 font-medium border border-line bg-surface text-ink hover:bg-surface-2"
+              >
+                {t("common.proceed")}
+              </button>
+            </div>
+          </div>
         </>
       )}
     </div>

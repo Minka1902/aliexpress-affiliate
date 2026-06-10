@@ -16,8 +16,19 @@
     "signin": "Sign in",
     "signup": "Sign up",
     "signout": "Sign out",
-    "takeTour": "Take the tour"
+    "takeTour": "Take the tour",
+    "account": "Account",
+    "search": "Paste a link…"
   },
+  "toast": {
+    "addedToCart": "Added to cart",
+    "addedToWishlist": "Added to wishlist",
+    "cartFull": "Cart is full (max 10)",
+    "wishlistFull": "Wishlist is full (max 10)",
+    "alreadyAdded": "Already added",
+    "copied": "Link copied"
+  },
+  "card": { "freeShipping": "Free shipping" },
   "auth": {
     "email": "Email",
     "password": "Password",
@@ -84,5 +95,5 @@
     "needsTracking": "Assign a tracking ID before approving",
     "earnings": "Earnings (admin only)"
   },
-  "common": { "loading": "Loading…", "error": "Something went wrong", "save": "Save" }
+  "common": { "loading": "Loading…", "error": "Something went wrong", "save": "Save", "clear": "Clear", "remove": "Remove", "proceed": "Proceed to checkout" }
 }

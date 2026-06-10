@@ -16,8 +16,19 @@
     "signin": "התחברות",
     "signup": "הרשמה",
     "signout": "התנתקות",
-    "takeTour": "התחל סיור"
+    "takeTour": "התחל סיור",
+    "account": "חשבון",
+    "search": "הדביקו קישור…"
   },
+  "toast": {
+    "addedToCart": "נוסף לעגלה",
+    "addedToWishlist": "נוסף לרשימת המשאלות",
+    "cartFull": "העגלה מלאה (מקסימום 10)",
+    "wishlistFull": "הרשימה מלאה (מקסימום 10)",
+    "alreadyAdded": "כבר נוסף",
+    "copied": "הקישור הועתק"
+  },
+  "card": { "freeShipping": "משלוח חינם" },
   "auth": {
     "email": "אימייל",
     "password": "סיסמה",
@@ -84,5 +95,5 @@
     "needsTracking": "יש להקצות מזהה מעקב לפני האישור",
     "earnings": "רווחים (למנהל בלבד)"
   },
-  "common": { "loading": "טוען…", "error": "משהו השתבש", "save": "שמור" }
+  "common": { "loading": "טוען…", "error": "משהו השתבש", "save": "שמור", "clear": "נקה", "remove": "הסר", "proceed": "המשך לתשלום" }
 }

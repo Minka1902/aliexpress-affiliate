@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+
 export interface ProductCardData {
   productId: string;
   title?: string;
@@ -11,24 +14,54 @@ export interface ProductCardData {
   rating?: string;
   orders?: number;
   sourceUrl?: string;
+  freeShipping?: boolean;
+}
+
+function Stars({ rating }: { rating: string }) {
+  // rating is typically a percentage like "93.5%" — map to 0..5 stars.
+  const pct = parseFloat(rating.replace("%", ""));
+  if (isNaN(pct)) return null;
+  const stars = Math.round((pct / 100) * 5);
+  return (
+    <span className="text-amber-500" aria-label={`${stars} of 5`}>
+      {"★".repeat(stars)}
+      <span className="text-line">{"★".repeat(5 - stars)}</span>
+    </span>
+  );
 }
 
 export function ProductCard({
   product,
   actionLabel,
   onAction,
+  onWishlist,
+  wishlisted,
 }: {
   product: ProductCardData;
   actionLabel?: string;
   onAction?: (p: ProductCardData) => void;
+  onWishlist?: (p: ProductCardData) => void;
+  wishlisted?: boolean;
 }) {
-  const { title, imageUrl, salePrice, originalPrice, currency, discount, rating, orders } = product;
+  const t = useTranslations();
+  const { title, imageUrl, salePrice, originalPrice, currency, discount, rating, orders, freeShipping } =
+    product;
+  const [imgLoaded, setImgLoaded] = useState(false);
+
   return (
-    <div className="bg-surface border border-line rounded-card overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+    <div className="group bg-surface border border-line rounded-card overflow-hidden flex flex-col hover:shadow-lg hover:-translate-y-0.5 transition-all">
       <div className="relative aspect-square bg-surface-2">
         {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt={title || "product"} className="w-full h-full object-cover" />
+          <>
+            {!imgLoaded && <div className="skeleton absolute inset-0" />}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt={title || "product"}
+              onLoad={() => setImgLoaded(true)}
+              className={`w-full h-full object-cover transition-opacity ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-ink-muted text-xs">
             no image
@@ -38,6 +71,20 @@ export function ProductCard({
           <span className="absolute top-2 start-2 bg-brand text-white text-xs font-semibold px-1.5 py-0.5 rounded">
             -{discount}
           </span>
+        )}
+        {onWishlist && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onWishlist(product);
+            }}
+            aria-label="wishlist"
+            className={`absolute top-2 end-2 w-7 h-7 rounded-full bg-surface/90 border border-line flex items-center justify-center text-base hover:scale-110 transition ${
+              wishlisted ? "text-brand" : "text-ink-muted"
+            }`}
+          >
+            {wishlisted ? "♥" : "♡"}
+          </button>
         )}
       </div>
       <div className="p-2 flex flex-col gap-1 flex-1">
@@ -51,9 +98,14 @@ export function ProductCard({
           )}
         </div>
         <div className="flex items-center justify-between text-xs text-ink-muted">
-          {rating && <span>★ {rating}</span>}
+          {rating ? <Stars rating={rating} /> : <span />}
           {orders ? <span>{orders} sold</span> : <span />}
         </div>
+        {freeShipping && (
+          <span className="self-start text-[10px] text-green-700 bg-green-100 rounded px-1.5 py-0.5">
+            {t("card.freeShipping")}
+          </span>
+        )}
         {actionLabel && onAction && (
           <button
             onClick={() => onAction(product)}

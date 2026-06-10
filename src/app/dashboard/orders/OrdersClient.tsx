@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Skeleton } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Order {
   orderId: string;
@@ -68,7 +70,16 @@ export function OrdersClient() {
   }, []);
 
   if (loading) {
-    return <p className="text-ink-muted">{t("common.loading")}</p>;
+    return (
+      <div className="flex flex-col gap-6">
+        <h1 className="text-lg font-semibold text-ink">{t("nav.orders")}</h1>
+        <div className="grid grid-cols-2 gap-4 sm:max-w-md">
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+        </div>
+        <Skeleton className="h-64" />
+      </div>
+    );
   }
   if (error || !data) {
     return <p className="text-ink-muted">{t("common.error")}</p>;
@@ -97,9 +108,7 @@ export function OrdersClient() {
       </div>
 
       {orders.length === 0 ? (
-        <div className="card text-center text-ink-muted py-10">
-          {t("dashboard.orders")} — 0
-        </div>
+        <EmptyState icon="📦" message={`${t("dashboard.orders")} — 0`} />
       ) : (
         <div className="card overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">

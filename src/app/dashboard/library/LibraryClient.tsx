@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Skeleton } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
+import { useToast } from "@/components/Toast";
 
 interface LibraryLink {
   id: string;
@@ -29,6 +32,7 @@ function formatDate(value?: string): string {
 
 export function LibraryClient() {
   const t = useTranslations();
+  const { toast } = useToast();
   const [links, setLinks] = useState<LibraryLink[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -56,11 +60,21 @@ export function LibraryClient() {
   function copy(text: string, id: string) {
     navigator.clipboard.writeText(text);
     setCopied(id);
+    toast(t("toast.copied"));
     setTimeout(() => setCopied(null), 1500);
   }
 
   if (loading) {
-    return <p className="text-ink-muted">{t("common.loading")}</p>;
+    return (
+      <div className="flex flex-col gap-6">
+        <h1 className="text-lg font-semibold text-ink">{t("nav.library")}</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-28" />
+          ))}
+        </div>
+      </div>
+    );
   }
   if (error || !links) {
     return <p className="text-ink-muted">{t("common.error")}</p>;
@@ -71,7 +85,12 @@ export function LibraryClient() {
       <h1 className="text-lg font-semibold text-ink">{t("nav.library")}</h1>
 
       {links.length === 0 ? (
-        <div className="card text-center text-ink-muted py-10">{t("nav.library")} — 0</div>
+        <EmptyState
+          icon="🔗"
+          message={`${t("nav.library")} — 0`}
+          ctaHref="/dashboard/link-generator"
+          ctaLabel={t("nav.linkGenerator")}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {links.map((l) => (
