@@ -3,6 +3,7 @@ import { getApiUser } from "@/lib/auth";
 import { rateLimit, LIMITS } from "@/lib/ratelimit";
 import { listOrders, smartMatch, getHotProducts, queryProducts } from "@/lib/aliexpress/methods";
 import type { AeProduct } from "@/lib/aliexpress/types";
+import { cached } from "@/lib/cache";
 
 function fmt(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -39,26 +40,30 @@ export async function GET() {
   const trackingId = user.trackingId;
 
   try {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - 180);
-    const { orders } = await listOrders({ startTime: fmt(start), endTime: fmt(end), pageSize: 50 });
+    // Recommendations change slowly; cache per user for 5 minutes to avoid 2-3 slow
+    // AliExpress calls on every dashboard visit.
+    const products = await cached(`recs:${user.id}`, 5 * 60_000, async () => {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - 180);
+      const { orders } = await listOrders({ startTime: fmt(start), endTime: fmt(end), pageSize: 50 });
 
-    let products: AeProduct[] = [];
-    if (orders.length > 0) {
-      const kw = keywordsFromTitles(orders.map((o) => o.productTitle || "").filter(Boolean));
-      const lastProductId = orders.find((o) => o.productId)?.productId;
-      if (lastProductId) {
-        products = await smartMatch({ productId: lastProductId, trackingId });
+      let out: AeProduct[] = [];
+      if (orders.length > 0) {
+        const kw = keywordsFromTitles(orders.map((o) => o.productTitle || "").filter(Boolean));
+        const lastProductId = orders.find((o) => o.productId)?.productId;
+        if (lastProductId) {
+          out = await smartMatch({ productId: lastProductId, trackingId });
+        }
+        if (out.length === 0 && kw) {
+          out = await queryProducts({ keywords: kw, trackingId, pageSize: 20 });
+        }
       }
-      if (products.length === 0 && kw) {
-        products = await queryProducts({ keywords: kw, trackingId, pageSize: 20 });
+      if (out.length === 0) {
+        out = await getHotProducts({ trackingId, pageSize: 20 });
       }
-    }
-    if (products.length === 0) {
-      // Cold-start fallback.
-      products = await getHotProducts({ trackingId, pageSize: 20 });
-    }
+      return out;
+    });
 
     // Strip the raw tracked promotion link; expose plain item URLs instead.
     const sanitized = products.map((p) => ({

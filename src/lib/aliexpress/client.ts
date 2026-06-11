@@ -71,13 +71,27 @@ export async function callApi(
 
   const body = new URLSearchParams(params).toString();
 
-  const res = await fetch(GATEWAY, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-    // Server-to-server; no caching.
-    cache: "no-store",
-  });
+  // Fail fast instead of hanging if the gateway is slow/unreachable.
+  const timeoutMs = Number(process.env.ALIEXPRESS_TIMEOUT_MS || 8000);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let res: Response;
+  try {
+    res = await fetch(GATEWAY, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (e) {
+    throw new AliExpressApiError(
+      controller.signal.aborted ? "Gateway timeout" : `Gateway error: ${(e as Error).message}`
+    );
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     throw new AliExpressApiError(`Gateway HTTP ${res.status}`);

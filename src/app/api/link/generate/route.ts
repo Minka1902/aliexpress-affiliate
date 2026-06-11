@@ -26,11 +26,16 @@ export async function POST(req: NextRequest) {
   }
 
   const origin = req.nextUrl.origin;
-  const results = [];
+  const trackingId = user.trackingId;
+  const shipTo = user.shipToCountry ?? undefined;
 
-  for (const url of parsed.data.urls) {
-    const resolved = await resolveLink(url, user.trackingId, user.shipToCountry ?? undefined);
+  // Resolve all pasted URLs in parallel instead of one-at-a-time.
+  const resolvedAll = await Promise.all(
+    parsed.data.urls.map((url) => resolveLink(url, trackingId, shipTo))
+  );
 
+  const results = await Promise.all(
+    resolvedAll.map(async (resolved) => {
     // Persist the generated link (also powers the library). Store the RAW affiliate URL
     // server-side; expose only a /go/<id> proxy so the tracking id stays hidden.
     const saved = await prisma.generatedLink.create({
@@ -45,7 +50,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    results.push({
+    return {
       id: saved.id,
       sourceUrl: resolved.sourceUrl,
       productId: resolved.productId,
@@ -68,8 +73,9 @@ export async function POST(req: NextRequest) {
         sourceUrl: `https://www.aliexpress.com/item/${p.productId}.html`,
       })),
       error: resolved.error,
-    });
-  }
+    };
+    })
+  );
 
   return NextResponse.json({ results });
 }

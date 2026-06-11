@@ -38,32 +38,33 @@ export async function resolveLink(
     // Could not even parse — still try generating against the normalized URL.
   }
 
-  // Attempt affiliate-link generation (this is our eligibility gate).
+  // Attempt affiliate-link generation (eligibility gate) AND product enrichment in parallel.
+  // They both only need the parsed URL/productId, so there's no reason to serialize them.
+  const [linkResult, promoResult] = await Promise.allSettled([
+    generateAffiliateLinks([parsed.normalizedUrl], trackingId, shipToCountry),
+    parsed.productId ? getPromotionInfo(parsed.productId, shipToCountry) : Promise.resolve(null),
+  ]);
+
   let affiliateUrl: string | null = null;
-  try {
-    const map = await generateAffiliateLinks([parsed.normalizedUrl], trackingId, shipToCountry);
+  if (linkResult.status === "fulfilled") {
+    const map = linkResult.value;
     affiliateUrl = map.get(parsed.normalizedUrl) ?? [...map.values()][0] ?? null;
-  } catch {
-    affiliateUrl = null;
   }
 
   if (affiliateUrl) {
     base.eligible = true;
     base.affiliateUrl = affiliateUrl;
     base.error = undefined;
-    // Best-effort enrichment for the product card.
     if (parsed.productId) {
-      try {
-        const promo = await getPromotionInfo(parsed.productId, shipToCountry);
-        if (promo) {
-          base.product = {
-            productId: parsed.productId,
-            title: (promo.product_title as string) || undefined,
-            imageUrl: (promo.product_main_image_url as string) || undefined,
-            salePrice: (promo.target_sale_price as string) || (promo.sale_price as string) || undefined,
-          };
-        }
-      } catch {
+      const promo = promoResult.status === "fulfilled" ? promoResult.value : null;
+      if (promo) {
+        base.product = {
+          productId: parsed.productId,
+          title: (promo.product_title as string) || undefined,
+          imageUrl: (promo.product_main_image_url as string) || undefined,
+          salePrice: (promo.target_sale_price as string) || (promo.sale_price as string) || undefined,
+        };
+      } else {
         base.product = { productId: parsed.productId };
       }
     }
