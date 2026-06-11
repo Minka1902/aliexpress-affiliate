@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getApiUser } from "@/lib/auth";
 import { listOrders } from "@/lib/aliexpress/methods";
 import { toUserOrder } from "@/dto/order";
+import { cached } from "@/lib/cache";
 
 function fmt(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -22,8 +23,10 @@ export async function GET() {
   start.setDate(start.getDate() - 180);
 
   try {
-    const { orders } = await listOrders({ startTime: fmt(start), endTime: fmt(end), pageSize: 50 });
-    const userOrders = orders.map(toUserOrder); // commission stripped
+    const result = await cached(`orders:${user.id}`, 2 * 60_000, () =>
+      listOrders({ startTime: fmt(start), endTime: fmt(end), pageSize: 50 })
+    );
+    const userOrders = result.orders.map(toUserOrder); // commission stripped
 
     // Build a small analytics summary (GMV, counts, categories, statuses) — no commission.
     const gmv = userOrders.reduce((sum, o) => sum + (parseFloat(o.orderValue || "0") || 0), 0);
