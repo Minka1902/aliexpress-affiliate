@@ -162,7 +162,7 @@ export function CartClient() {
         <p className="text-ink-muted">{t("common.loading")}</p>
       ) : cart.items.length === 0 ? (
         <EmptyState
-          icon="🛒"
+          icon="cart"
           message={t("cart.empty")}
           ctaHref="/dashboard/link-generator"
           ctaLabel={t("nav.linkGenerator")}

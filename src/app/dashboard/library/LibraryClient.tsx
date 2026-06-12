@@ -86,7 +86,7 @@ export function LibraryClient() {
 
       {links.length === 0 ? (
         <EmptyState
-          icon="🔗"
+          icon="link"
           message={`${t("nav.library")} — 0`}
           ctaHref="/dashboard/link-generator"
           ctaLabel={t("nav.linkGenerator")}

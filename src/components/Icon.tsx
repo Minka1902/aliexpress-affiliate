@@ -1,58 +1,26 @@
-// Single swap-point icon wrapper.
-//
-// We intend to use the `msr-icons` package for all icons, but msr-icons@1.0.6 ships no build
-// output (no dist/), so it currently exports nothing — see MISSING-ICONS.md. Until a fixed
-// version is published, this wrapper renders fallback glyphs. To adopt msr-icons later:
-//   import { Heart, Settings /* ... */ } from "msr-icons";
-//   and map `name` → the imported component, passing { size, className, fillColor }.
+"use client";
 
-export type IconName =
-  | "cart"
-  | "heart"
-  | "settings"
-  | "search"
-  | "home"
-  | "link"
-  | "globe"
-  | "palette"
-  | "check"
-  | "close"
-  | "info"
-  | "ban"
-  | "trash"
-  | "edit"
-  | "user"
-  | "tag"
-  | "seed"
-  | "tour"
-  | "lock";
+import dynamic from "next/dynamic";
+import type { IconName } from "./IconImpl";
 
-const FALLBACK: Record<IconName, string> = {
-  cart: "🛒",
-  heart: "♡",
-  settings: "⚙",
-  search: "🔍",
-  home: "🏠",
-  link: "🔗",
-  globe: "🌐",
-  palette: "🎨",
-  check: "✓",
-  close: "✕",
-  info: "ℹ",
-  ban: "🚫",
-  trash: "🗑",
-  edit: "✎",
-  user: "👤",
-  tag: "🏷",
-  seed: "🌱",
-  tour: "🧭",
-  lock: "🔒",
-};
+export type { IconName };
 
-export function Icon({ name, className }: { name: IconName; size?: number; className?: string }) {
+// Load the heavy msr-icons-backed glyph lazily so the 1.6MB icon library stays out of the
+// critical first-load bundle. A sized span reserves space so there's no layout shift.
+const Glyph = dynamic(() => import("./IconImpl"), { ssr: false, loading: () => null });
+
+export function Icon({
+  name,
+  size = 18,
+  className = "",
+}: {
+  name: IconName;
+  size?: number;
+  className?: string;
+}) {
   return (
-    <span className={className} aria-hidden>
-      {FALLBACK[name]}
+    <span className={`ico ${className}`} style={{ width: size, height: size }} aria-hidden>
+      <Glyph name={name} />
     </span>
   );
 }

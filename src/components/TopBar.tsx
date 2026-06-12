@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useLocalList } from "@/hooks/useLocalList";
 import { startTour } from "@/components/tour";
 import { useSeedMode } from "@/components/SeedModeProvider";
+import { Icon } from "@/components/Icon";
 import type { Entitlements } from "@/lib/roles";
 
 function setCookie(name: string, value: string) {
@@ -88,9 +89,10 @@ export function TopBar({
           />
           <button
             type="submit"
-            className="rounded-e-full bg-ink/80 hover:bg-ink px-4 text-sm font-medium"
+            className="rounded-e-full bg-ink/80 hover:bg-ink px-4 flex items-center text-white"
+            aria-label={t("nav.search")}
           >
-            🔍
+            <Icon name="search" size={16} />
           </button>
         </form>
 
@@ -127,33 +129,40 @@ export function TopBar({
           <button
             onClick={enable}
             title={seedMode ? t("admin.seedOn") : t("admin.seed")}
-            className={`text-xs px-2 py-1 rounded ${
+            className={`text-xs px-2 py-1 rounded inline-flex items-center gap-1 ${
               seedMode ? "bg-yellow-300 text-black" : "bg-white/20 hover:bg-white/30"
             }`}
           >
+            <Icon name="seed" size={12} />
             {seedMode ? t("admin.seedOn") : t("admin.seed")}
           </button>
         )}
 
-        <select aria-label="language" value={locale} onChange={onLocale} className={selectClass}>
-          <option value="en">🌐 EN</option>
-          <option value="he">🌐 עב</option>
-          <option value="ru">🌐 RU</option>
-        </select>
+        <span className="hidden sm:flex items-center gap-1">
+          <Icon name="language" size={14} />
+          <select aria-label="language" value={locale} onChange={onLocale} className={selectClass}>
+            <option value="en">EN</option>
+            <option value="he">עב</option>
+            <option value="ru">RU</option>
+          </select>
+        </span>
 
-        <select aria-label="theme" value={theme} onChange={onTheme} className={selectClass}>
-          <option value="aliexpress">🎨 {t("themes.aliexpress")}</option>
-          <option value="dark">🎨 {t("themes.dark")}</option>
-          <option value="contrast">🎨 {t("themes.contrast")}</option>
-        </select>
+        <span className="hidden sm:flex items-center gap-1">
+          <Icon name="theme" size={14} />
+          <select aria-label="theme" value={theme} onChange={onTheme} className={selectClass}>
+            <option value="aliexpress">{t("themes.aliexpress")}</option>
+            <option value="dark">{t("themes.dark")}</option>
+            <option value="contrast">{t("themes.contrast")}</option>
+          </select>
+        </span>
 
         <Link
           data-tour="cart"
           href={features.cart ? "/dashboard/cart" : "/dashboard/pay"}
-          className="relative text-base hidden md:inline"
+          className="relative hidden md:inline-flex items-center"
           aria-label={t("nav.cart")}
         >
-          {features.cart ? "🛒" : "🔒"}
+          <Icon name={features.cart ? "cart" : "lock"} size={18} />
           {mounted && features.cart && cart.items.length > 0 && (
             <span className="absolute -top-2 -end-2 bg-white text-brand text-[10px] rounded-full px-1">
               {cart.items.length}
@@ -163,10 +172,10 @@ export function TopBar({
         <Link
           data-tour="wishlist"
           href={features.wishlist ? "/dashboard/wishlist" : "/dashboard/pay"}
-          className="relative text-base hidden md:inline"
+          className="relative hidden md:inline-flex items-center"
           aria-label={t("nav.wishlist")}
         >
-          {features.wishlist ? "♡" : "🔒"}
+          <Icon name={features.wishlist ? "heart" : "lock"} size={18} />
           {mounted && features.wishlist && wishlist.items.length > 0 && (
             <span className="absolute -top-2 -end-2 bg-white text-brand text-[10px] rounded-full px-1">
               {wishlist.items.length}

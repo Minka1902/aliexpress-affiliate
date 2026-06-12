@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSeedMode } from "@/components/SeedModeProvider";
 import { seedAdminUsers, seedAdminOrders, seedUserStats } from "@/lib/seed-fixtures";
+import { Icon } from "@/components/Icon";
 
 type Role = "USER" | "FAMILY" | "PARTNERS_FAMILY" | "FRIENDS" | "PARTNERS_FRIENDS" | "ADMIN";
 type Status = "ACTIVE" | "BANNED";
@@ -229,8 +230,8 @@ function UserPopup({
       >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-ink">{user.email}</h2>
-          <button onClick={onClose} className="text-ink-muted hover:text-ink">
-            ✕
+          <button onClick={onClose} className="text-ink-muted hover:text-ink" aria-label="close">
+            <Icon name="close" size={18} />
           </button>
         </div>
 

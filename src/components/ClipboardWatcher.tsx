@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { extractAliExpressUrl } from "@/lib/aliexpress/match-url";
+import { Icon } from "@/components/Icon";
 
 const PREF_KEY = "clipboardAutoDetect";
 const SESSION_KEY = "clipboardLastHandled";
@@ -78,7 +79,7 @@ export function ClipboardWatcher() {
   return (
     <div className="fixed bottom-20 md:bottom-4 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
       <div className="pointer-events-auto card shadow-lg flex items-center gap-3 max-w-lg w-full">
-        <span className="text-lg">🔗</span>
+        <Icon name="link" size={18} className="text-brand" />
         <p className="text-sm text-ink flex-1 truncate">{t("clipboard.detected")}</p>
         <button onClick={paste} className="btn-primary text-sm py-1.5">
           {t("clipboard.paste")}

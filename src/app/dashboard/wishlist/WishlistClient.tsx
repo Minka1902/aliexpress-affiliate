@@ -118,7 +118,7 @@ export function WishlistClient() {
         <p className="text-ink-muted">{t("common.loading")}</p>
       ) : wishlist.items.length === 0 ? (
         <EmptyState
-          icon="♡"
+          icon="heart"
           message={t("wishlist.empty")}
           ctaHref="/dashboard/link-generator"
           ctaLabel={t("nav.linkGenerator")}

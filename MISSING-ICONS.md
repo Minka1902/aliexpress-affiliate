@@ -1,40 +1,39 @@
-# Missing icons (for the `msr-icons` package author)
+# msr-icons status
 
-The app is set up to use **`msr-icons`** for all icons, via the wrapper at
-`src/components/Icon.tsx`. However, **`msr-icons@1.0.6` as published on npm contains no
-build output** — the package only ships `README.md`, `LICENSE`, and `package.json` (no
-`dist/` directory), so `import { ... } from "msr-icons"` resolves to nothing and exports
-zero icons.
+**Resolved:** `msr-icons@1.1.0` ships a real `dist/` with 2122 icons. All icons the app uses
+are present and mapped in `src/components/IconImpl.tsx`:
 
-**Action needed:** publish a version of `msr-icons` that actually includes the built
-`dist/index.js`, `dist/index.cjs`, and `dist/index.d.ts` referenced by its `package.json`
-`exports`. Once that's available, the `Icon` wrapper can be switched from its temporary
-fallback glyphs to real `msr-icons` components in one place.
-
-## Icons the app needs (semantic name → suggested PascalCase export)
-
-| App usage | Suggested `msr-icons` name |
+| App usage | msr-icons export |
 |---|---|
-| Cart | `Cart` / `ShoppingCart` |
-| Wishlist / favourite | `Heart` |
+| Cart | `ShoppingCart` |
+| Wishlist (nav) / favourite | `Wishlist` / `Heart` / `HeartFilled` |
 | Settings / account | `Settings` |
 | Search | `Search` |
-| Home / dashboard | `House` |
+| Home / dashboard | `Home2` |
 | Affiliate link | `Link` |
-| Language | `Globe` / `Language` |
+| Language | `Language` |
 | Theme | `Palette` |
-| Eligible / success | `Check` / `CircleCheck` |
-| Not eligible / error | `Close` / `CircleX` |
-| Info / notice | `Info` |
-| Ban user | `Ban` / `UserBlock` |
+| Eligible / success | `Check` |
+| Close / not eligible | `Close` |
+| Info | `Info` |
+| Ban user / suspended | `Ban` |
 | Delete | `Trash` |
-| Edit | `Pencil` / `Edit` |
+| Edit | `Edit` |
 | User | `User` |
-| Price / tag | `Tag` |
-| Seed / demo data | `Database` |
-| Guided tour | `Compass` / `MapPin` |
+| Price / tag | `PriceTag` |
+| Seed / demo data | `Seedling` |
+| Guided tour | `Compass` |
 | Locked feature | `Lock` |
 | QR code | `QrCode` |
+| Empty / box | `Box` |
 
-If any of the above names don't exist in the package, please add them (or tell me the
-correct names) and I'll map them in `src/components/Icon.tsx`.
+## Remaining request for the package author (performance, not correctness)
+The published package bundles **all 2122 icons into a single module** (`dist/index.js`), which
+is **not tree-shakeable** — importing even one named icon pulls the whole ~1.6MB library into
+the bundle. As a workaround the app loads the icon module **lazily** (`src/components/Icon.tsx`
+via `next/dynamic`) so it stays out of the critical first-load bundle.
+
+To make named imports tree-shakeable (so apps only pay for the icons they use), please publish
+each icon (or category) as its **own module** with a matching `exports` subpath, e.g.
+`msr-icons/icons/ShoppingCart`, and keep `"sideEffects": false`. Then the lazy-loading
+workaround can be removed.

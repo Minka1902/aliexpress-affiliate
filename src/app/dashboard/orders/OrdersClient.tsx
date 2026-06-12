@@ -108,7 +108,7 @@ export function OrdersClient() {
       </div>
 
       {orders.length === 0 ? (
-        <EmptyState icon="📦" message={`${t("dashboard.orders")} — 0`} />
+        <EmptyState icon="box" message={`${t("dashboard.orders")} — 0`} />
       ) : (
         <div className="card overflow-x-auto">
           <table className="w-full min-w-[640px] text-sm">

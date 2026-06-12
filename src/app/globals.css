@@ -98,3 +98,24 @@ body {
     @apply bg-surface border border-line rounded-card p-4;
   }
 }
+
+/* msr-icons wrapper: size the glyph to the span and inherit text color (currentColor). */
+.ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+.ico svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* CSS beats SVG presentation attributes, so this recolors the baked stroke/fill. */
+.ico svg [stroke]:not([stroke="none"]) {
+  stroke: currentColor;
+}
+.ico svg [fill]:not([fill="none"]):not([fill="transparent"]) {
+  fill: currentColor;
+}

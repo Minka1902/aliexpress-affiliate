@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Icon } from "@/components/Icon";
 
 export interface ProductCardData {
   productId: string;
@@ -79,11 +80,11 @@ export function ProductCard({
               onWishlist(product);
             }}
             aria-label="wishlist"
-            className={`absolute top-2 end-2 w-7 h-7 rounded-full bg-surface/90 border border-line flex items-center justify-center text-base hover:scale-110 transition ${
+            className={`absolute top-2 end-2 w-7 h-7 rounded-full bg-surface/90 border border-line flex items-center justify-center hover:scale-110 transition ${
               wishlisted ? "text-brand" : "text-ink-muted"
             }`}
           >
-            {wishlisted ? "♥" : "♡"}
+            <Icon name={wishlisted ? "heartFilled" : "heart"} size={16} />
           </button>
         )}
       </div>
