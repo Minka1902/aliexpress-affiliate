@@ -72,6 +72,13 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
             {mode === "signup" ? t("auth.signupCta") : t("auth.signinCta")}
           </button>
         </form>
+        {mode === "signin" && (
+          <p className="text-sm text-center mt-3">
+            <Link href="/forgot" className="text-ink-muted hover:text-brand">
+              {t("auth.forgot")}
+            </Link>
+          </p>
+        )}
         <p className="text-sm text-ink-muted mt-4 text-center">
           {mode === "signup" ? t("auth.haveAccount") : t("auth.noAccount")}{" "}
           <Link href={mode === "signup" ? "/signin" : "/signup"} className="text-brand font-medium">

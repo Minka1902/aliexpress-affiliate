@@ -64,6 +64,20 @@ export const paySchema = z.object({
   target: z.enum(["ai", "cart", "wishlist", "bundle"]),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(200),
+  newPassword: z.string().min(8).max(200),
+});
+
+export const forgotSchema = z.object({
+  email: z.string().trim().email().max(200),
+});
+
+export const resetSchema = z.object({
+  token: z.string().trim().min(10).max(200),
+  newPassword: z.string().min(8).max(200),
+});
+
 export const aiCheckSchema = z.object({
   products: z
     .array(

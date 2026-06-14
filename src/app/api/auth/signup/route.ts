@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { getSession } from "@/lib/session";
 import { signupSchema } from "@/lib/validation";
-import { notifyAdminOfSignup } from "@/lib/mailer";
+import { notifyAdminOfSignup, sendVerifyEmail } from "@/lib/mailer";
+import { createToken } from "@/lib/tokens";
 import { defaultTrackingId } from "@/lib/config";
 import { toPublicUser } from "@/dto/user";
 
@@ -44,6 +45,9 @@ export async function POST(req: NextRequest) {
 
   if (!isAdmin) {
     await notifyAdminOfSignup(user.email, user.name ?? user.email);
+    // Send a (non-blocking) email-verification link.
+    const raw = await createToken(user.id, "VERIFY", 24 * 60 * 60_000);
+    await sendVerifyEmail(user.email, `${req.nextUrl.origin}/api/auth/verify?token=${raw}`);
   }
 
   return NextResponse.json({ user: toPublicUser(user) }, { status: 201 });

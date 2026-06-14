@@ -54,7 +54,16 @@
     "haveAccount": "Already have an account?",
     "invalid": "Invalid email or password",
     "exists": "An account with this email already exists",
-    "banned": "This account has been suspended"
+    "banned": "This account has been suspended",
+    "forgot": "Forgot password?",
+    "forgotTitle": "Reset your password",
+    "forgotCta": "Send reset link",
+    "forgotSent": "If that email exists, a reset link has been sent.",
+    "resetTitle": "Set a new password",
+    "resetCta": "Update password",
+    "resetDone": "Password updated.",
+    "resetInvalid": "This reset link is invalid or expired.",
+    "newPassword": "New password"
   },
   "banned": {
     "title": "Account suspended",
@@ -142,7 +151,13 @@
     "aiKeyHint": "Stored encrypted. Leave blank to use the free built-in overview.",
     "save": "Save",
     "saved": "Saved",
-    "clipboardAutoDetect": "Auto-detect AliExpress links on the clipboard"
+    "clipboardAutoDetect": "Auto-detect AliExpress links on the clipboard",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "wrongPassword": "Current password is incorrect",
+    "deleteAccount": "Delete my account",
+    "deleteConfirm": "Permanently delete your account? This cannot be undone."
   },
   "themes": {
     "aliexpress": "AliExpress Light",
@@ -184,5 +199,10 @@
     "clear": "Clear",
     "remove": "Remove",
     "proceed": "Proceed to checkout"
+  },
+  "verify": {
+    "banner": "Please verify your email address.",
+    "resend": "Resend email",
+    "sent": "Sent — check your inbox."
   }
 }

@@ -7,6 +7,7 @@ import { EntitlementsProvider } from "@/components/EntitlementsProvider";
 import { SeedModeProvider } from "@/components/SeedModeProvider";
 import { ClipboardWatcher } from "@/components/ClipboardWatcher";
 import { Onboarding } from "@/components/Onboarding";
+import { VerifyBanner } from "@/components/VerifyBanner";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
@@ -20,6 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <SeedModeProvider>
         <div className="min-h-screen bg-page">
           <TopBar isAdmin={isAdminUser(user)} theme={theme} locale={locale} features={features} />
+          {!user.emailVerifiedAt && <VerifyBanner />}
           <main className="max-w-6xl mx-auto px-4 py-6 pb-24 md:pb-6">{children}</main>
           <BottomNav features={features} />
           <ClipboardWatcher />

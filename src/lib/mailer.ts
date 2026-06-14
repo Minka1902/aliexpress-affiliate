@@ -46,6 +46,22 @@ export async function notifyAdminOfSignup(userEmail: string, userName: string): 
   });
 }
 
+export async function sendPasswordReset(email: string, link: string): Promise<void> {
+  await sendMail({
+    to: email,
+    subject: "Reset your password",
+    text: `Reset your password using this link (valid for 1 hour):\n${link}\n\nIf you didn't request this, ignore this email.`,
+  });
+}
+
+export async function sendVerifyEmail(email: string, link: string): Promise<void> {
+  await sendMail({
+    to: email,
+    subject: "Verify your email",
+    text: `Confirm your email address by visiting:\n${link}`,
+  });
+}
+
 export async function notifyUserApproved(userEmail: string, userName: string): Promise<void> {
   await sendMail({
     to: userEmail,

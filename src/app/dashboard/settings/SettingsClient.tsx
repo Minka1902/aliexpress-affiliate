@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 type Theme = "aliexpress" | "dark" | "contrast";
@@ -61,6 +62,38 @@ export function SettingsClient() {
   function toggleClipboard(on: boolean) {
     setClipboardAuto(on);
     localStorage.setItem("clipboardAutoDetect", on ? "on" : "off");
+  }
+
+  const router = useRouter();
+  const [pwMsg, setPwMsg] = useState<string | null>(null);
+
+  async function changePassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setPwMsg(null);
+    const fd = new FormData(e.currentTarget);
+    const res = await fetch("/api/account/password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        currentPassword: fd.get("currentPassword"),
+        newPassword: fd.get("newPassword"),
+      }),
+    });
+    if (res.ok) {
+      setPwMsg(t("settings.saved"));
+      (e.target as HTMLFormElement).reset();
+    } else {
+      setPwMsg(t("settings.wrongPassword"));
+    }
+  }
+
+  async function deleteAccount() {
+    if (!confirm(t("settings.deleteConfirm"))) return;
+    const res = await fetch("/api/account", { method: "DELETE" });
+    if (res.ok) {
+      router.push("/signin");
+      router.refresh();
+    }
   }
 
   useEffect(() => {
@@ -250,6 +283,41 @@ export function SettingsClient() {
           {saving ? t("common.loading") : t("settings.save")}
         </button>
         {saved && <span className="text-sm text-brand">{t("settings.saved")}</span>}
+      </div>
+
+      {/* Change password */}
+      <form onSubmit={changePassword} className="card flex flex-col gap-3">
+        <h2 className="text-sm font-semibold text-ink">{t("settings.changePassword")}</h2>
+        <input
+          name="currentPassword"
+          type="password"
+          required
+          placeholder={t("settings.currentPassword")}
+          className="input"
+        />
+        <input
+          name="newPassword"
+          type="password"
+          required
+          minLength={8}
+          placeholder={t("settings.newPassword")}
+          className="input"
+        />
+        {pwMsg && <span className="text-sm text-brand">{pwMsg}</span>}
+        <button type="submit" className="btn-primary self-start">
+          {t("settings.changePassword")}
+        </button>
+      </form>
+
+      {/* Danger zone */}
+      <div className="card border border-red-200 flex flex-col gap-2">
+        <h2 className="text-sm font-semibold text-red-700">{t("settings.deleteAccount")}</h2>
+        <button
+          onClick={deleteAccount}
+          className="self-start rounded-full px-4 py-2 text-sm bg-red-600 text-white hover:opacity-90"
+        >
+          {t("settings.deleteAccount")}
+        </button>
       </div>
     </div>
   );
