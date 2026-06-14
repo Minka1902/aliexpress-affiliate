@@ -1,5 +1,5 @@
 import { parseAliExpressUrl } from "./parse-url";
-import { generateAffiliateLinks, smartMatch, getPromotionInfo } from "./methods";
+import { generateAffiliateLinks, smartMatch, getPromotionInfo, getShipping } from "./methods";
 import type { AeProduct } from "./types";
 
 export interface ResolvedLink {
@@ -40,10 +40,12 @@ export async function resolveLink(
 
   // Attempt affiliate-link generation (eligibility gate) AND product enrichment in parallel.
   // They both only need the parsed URL/productId, so there's no reason to serialize them.
-  const [linkResult, promoResult] = await Promise.allSettled([
+  const [linkResult, promoResult, shipResult] = await Promise.allSettled([
     generateAffiliateLinks([parsed.normalizedUrl], trackingId, shipToCountry),
     parsed.productId ? getPromotionInfo(parsed.productId, shipToCountry) : Promise.resolve(null),
+    parsed.productId ? getShipping({ productId: parsed.productId, shipToCountry }) : Promise.resolve(null),
   ]);
+  const shipping = shipResult.status === "fulfilled" ? shipResult.value : null;
 
   let affiliateUrl: string | null = null;
   if (linkResult.status === "fulfilled") {
@@ -57,16 +59,15 @@ export async function resolveLink(
     base.error = undefined;
     if (parsed.productId) {
       const promo = promoResult.status === "fulfilled" ? promoResult.value : null;
-      if (promo) {
-        base.product = {
-          productId: parsed.productId,
-          title: (promo.product_title as string) || undefined,
-          imageUrl: (promo.product_main_image_url as string) || undefined,
-          salePrice: (promo.target_sale_price as string) || (promo.sale_price as string) || undefined,
-        };
-      } else {
-        base.product = { productId: parsed.productId };
-      }
+      base.product = {
+        productId: parsed.productId,
+        title: (promo?.product_title as string) || undefined,
+        imageUrl: (promo?.product_main_image_url as string) || undefined,
+        salePrice: (promo?.target_sale_price as string) || (promo?.sale_price as string) || undefined,
+        estimatedDeliveryDays: shipping?.estimatedDeliveryDays,
+        shippingFee: shipping?.shippingFee,
+        freeShipping: shipping?.freeShipping,
+      };
     }
     return base;
   }

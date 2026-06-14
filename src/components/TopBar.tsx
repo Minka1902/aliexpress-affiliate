@@ -8,6 +8,7 @@ import { useLocalList } from "@/hooks/useLocalList";
 import { startTour } from "@/components/tour";
 import { useSeedMode } from "@/components/SeedModeProvider";
 import { Icon } from "@/components/Icon";
+import { isAliExpressUrl } from "@/lib/aliexpress/match-url";
 import type { Entitlements } from "@/lib/roles";
 
 function setCookie(name: string, value: string) {
@@ -61,7 +62,12 @@ export function TopBar({
     e.preventDefault();
     const q = search.trim();
     if (!q) return;
-    router.push(`/dashboard/link-generator?shared=${encodeURIComponent(q)}`);
+    // A pasted AliExpress URL → generator; a keyword → browse/search.
+    if (isAliExpressUrl(q)) {
+      router.push(`/dashboard/link-generator?shared=${encodeURIComponent(q)}&auto=1`);
+    } else {
+      router.push(`/dashboard/browse?q=${encodeURIComponent(q)}`);
+    }
   }
 
   async function signOut() {
@@ -102,6 +108,9 @@ export function TopBar({
           </Link>
           <Link data-tour="link" href="/dashboard/link-generator" className="hover:underline">
             {t("nav.linkGenerator")}
+          </Link>
+          <Link href="/dashboard/browse" className="hover:underline">
+            {t("nav.browse")}
           </Link>
           <Link href="/dashboard/orders" className="hover:underline">
             {t("nav.orders")}

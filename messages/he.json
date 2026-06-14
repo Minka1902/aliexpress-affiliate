@@ -18,7 +18,14 @@
     "signout": "התנתקות",
     "takeTour": "התחל סיור",
     "account": "חשבון",
-    "search": "הדביקו קישור…"
+    "search": "חיפוש",
+    "browse": "עיון"
+  },
+  "browse": {
+    "title": "עיון במוצרים",
+    "searchPlaceholder": "חפשו מוצרים או הדביקו קישור…",
+    "allCategories": "כל הקטגוריות",
+    "noResults": "לא נמצאו מוצרים"
   },
   "toast": {
     "addedToCart": "נוסף לעגלה",
@@ -28,7 +35,13 @@
     "alreadyAdded": "כבר נוסף",
     "copied": "הקישור הועתק"
   },
-  "card": { "freeShipping": "משלוח חינם" },
+  "card": {
+    "freeShipping": "משלוח חינם",
+    "deliveryDays": "משלוח ~{days} ימים"
+  },
+  "order": {
+    "deliveryDays": "{days} ימים"
+  },
   "auth": {
     "email": "אימייל",
     "password": "סיסמה",
@@ -95,8 +108,19 @@
     "dontAsk": "אל תשאל שוב",
     "noLink": "אין קישור עלי אקספרס בלוח"
   },
-  "cart": { "title": "עגלה", "empty": "העגלה ריקה", "aiCheck": "בדיקת בטיחות ומבצעים ב-AI", "max": "העגלה מלאה (מקסימום 10)" },
-  "wishlist": { "title": "רשימת משאלות", "empty": "רשימת המשאלות ריקה", "max": "הרשימה מלאה (מקסימום 10)", "nowEligible": "זמין כעת כקישור שותפים!", "stillNot": "עדיין לא זכאי — הנה מוצר דומה" },
+  "cart": {
+    "title": "עגלה",
+    "empty": "העגלה ריקה",
+    "aiCheck": "בדיקת בטיחות ומבצעים ב-AI",
+    "max": "העגלה מלאה (מקסימום 10)"
+  },
+  "wishlist": {
+    "title": "רשימת משאלות",
+    "empty": "רשימת המשאלות ריקה",
+    "max": "הרשימה מלאה (מקסימום 10)",
+    "nowEligible": "זמין כעת כקישור שותפים!",
+    "stillNot": "עדיין לא זכאי — הנה מוצר דומה"
+  },
   "dashboard": {
     "title": "לוח הבקרה שלך",
     "gmv": "שווי הזמנות",
@@ -120,7 +144,11 @@
     "saved": "נשמר",
     "clipboardAutoDetect": "זיהוי אוטומטי של קישורי עלי אקספרס בלוח"
   },
-  "themes": { "aliexpress": "עלי אקספרס בהיר", "dark": "כהה", "contrast": "ניגודיות גבוהה" },
+  "themes": {
+    "aliexpress": "עלי אקספרס בהיר",
+    "dark": "כהה",
+    "contrast": "ניגודיות גבוהה"
+  },
   "admin": {
     "title": "ניהול",
     "pending": "ממתינים לאישור",
@@ -146,6 +174,15 @@
     "commission": "עמלה",
     "confirmDelete": "למחוק את המשתמש לצמיתות?"
   },
-  "nav2": { "pay": "פתיחה" },
-  "common": { "loading": "טוען…", "error": "משהו השתבש", "save": "שמור", "clear": "נקה", "remove": "הסר", "proceed": "המשך לתשלום" }
+  "nav2": {
+    "pay": "פתיחה"
+  },
+  "common": {
+    "loading": "טוען…",
+    "error": "משהו השתבש",
+    "save": "שמור",
+    "clear": "נקה",
+    "remove": "הסר",
+    "proceed": "המשך לתשלום"
+  }
 }

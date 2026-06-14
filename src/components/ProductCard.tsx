@@ -16,6 +16,7 @@ export interface ProductCardData {
   orders?: number;
   sourceUrl?: string;
   freeShipping?: boolean;
+  estimatedDeliveryDays?: number;
 }
 
 function Stars({ rating }: { rating: string }) {
@@ -45,7 +46,7 @@ export function ProductCard({
   wishlisted?: boolean;
 }) {
   const t = useTranslations();
-  const { title, imageUrl, salePrice, originalPrice, currency, discount, rating, orders, freeShipping } =
+  const { title, imageUrl, salePrice, originalPrice, currency, discount, rating, orders, freeShipping, estimatedDeliveryDays } =
     product;
   const [imgLoaded, setImgLoaded] = useState(false);
 
@@ -107,6 +108,11 @@ export function ProductCard({
             {t("card.freeShipping")}
           </span>
         )}
+        {estimatedDeliveryDays ? (
+          <span className="text-[10px] text-ink-muted">
+            {t("card.deliveryDays", { days: estimatedDeliveryDays })}
+          </span>
+        ) : null}
         {actionLabel && onAction && (
           <button
             onClick={() => onAction(product)}

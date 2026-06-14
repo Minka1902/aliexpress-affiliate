@@ -21,7 +21,7 @@ function appSecret(): string {
 }
 
 /** HMAC-SHA256 sign over sorted key+value concatenation, hex uppercase. */
-function sign(params: Record<string, string>, secret: string): string {
+export function sign(params: Record<string, string>, secret: string): string {
   const sorted = Object.keys(params).sort();
   const base = sorted.map((k) => `${k}${params[k]}`).join("");
   return crypto.createHmac("sha256", secret).update(base, "utf8").digest("hex").toUpperCase();

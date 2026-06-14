@@ -19,7 +19,13 @@ interface Result {
   productId: string | null;
   eligible: boolean;
   proxyUrl: string | null;
-  product: { title?: string; imageUrl?: string; salePrice?: string } | null;
+  product: {
+    title?: string;
+    imageUrl?: string;
+    salePrice?: string;
+    freeShipping?: boolean;
+    estimatedDeliveryDays?: number;
+  } | null;
   similar: Similar[];
   error?: string;
 }
@@ -167,6 +173,18 @@ export function LinkGenerator() {
                   ✓ {t("link.eligible")}
                 </span>
                 <p className="text-sm text-ink line-clamp-2">{r.product?.title || r.productId}</p>
+                <div className="flex items-center gap-2 mt-1 text-xs">
+                  {r.product?.freeShipping && (
+                    <span className="text-green-700 bg-green-100 rounded px-1.5 py-0.5">
+                      {t("card.freeShipping")}
+                    </span>
+                  )}
+                  {r.product?.estimatedDeliveryDays ? (
+                    <span className="text-ink-muted">
+                      {t("card.deliveryDays", { days: r.product.estimatedDeliveryDays })}
+                    </span>
+                  ) : null}
+                </div>
                 <div className="flex items-center gap-2 mt-2">
                   <input readOnly value={r.proxyUrl} className="input text-xs flex-1" />
                   <button onClick={() => copy(r.proxyUrl!, r.id)} className="btn-primary text-sm">

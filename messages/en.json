@@ -18,7 +18,14 @@
     "signout": "Sign out",
     "takeTour": "Take the tour",
     "account": "Account",
-    "search": "Paste a link…"
+    "search": "Search",
+    "browse": "Browse"
+  },
+  "browse": {
+    "title": "Browse products",
+    "searchPlaceholder": "Search products or paste a link…",
+    "allCategories": "All categories",
+    "noResults": "No products found"
   },
   "toast": {
     "addedToCart": "Added to cart",
@@ -28,7 +35,13 @@
     "alreadyAdded": "Already added",
     "copied": "Link copied"
   },
-  "card": { "freeShipping": "Free shipping" },
+  "card": {
+    "freeShipping": "Free shipping",
+    "deliveryDays": "~{days} days delivery"
+  },
+  "order": {
+    "deliveryDays": "{days} days"
+  },
   "auth": {
     "email": "Email",
     "password": "Password",
@@ -95,8 +108,19 @@
     "dontAsk": "Don't ask again",
     "noLink": "No AliExpress link on the clipboard"
   },
-  "cart": { "title": "Cart", "empty": "Your cart is empty", "aiCheck": "AI safety + deals check", "max": "Cart is full (max 10)" },
-  "wishlist": { "title": "Wishlist", "empty": "Your wishlist is empty", "max": "Wishlist is full (max 10)", "nowEligible": "Now available as an affiliate link!", "stillNot": "Still not eligible — here's a similar one" },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty",
+    "aiCheck": "AI safety + deals check",
+    "max": "Cart is full (max 10)"
+  },
+  "wishlist": {
+    "title": "Wishlist",
+    "empty": "Your wishlist is empty",
+    "max": "Wishlist is full (max 10)",
+    "nowEligible": "Now available as an affiliate link!",
+    "stillNot": "Still not eligible — here's a similar one"
+  },
   "dashboard": {
     "title": "Your dashboard",
     "gmv": "Order value (GMV)",
@@ -120,7 +144,11 @@
     "saved": "Saved",
     "clipboardAutoDetect": "Auto-detect AliExpress links on the clipboard"
   },
-  "themes": { "aliexpress": "AliExpress Light", "dark": "Dark", "contrast": "High Contrast" },
+  "themes": {
+    "aliexpress": "AliExpress Light",
+    "dark": "Dark",
+    "contrast": "High Contrast"
+  },
   "admin": {
     "title": "Admin",
     "pending": "Pending approvals",
@@ -146,6 +174,15 @@
     "commission": "Commission",
     "confirmDelete": "Delete this user permanently?"
   },
-  "nav2": { "pay": "Unlock" },
-  "common": { "loading": "Loading…", "error": "Something went wrong", "save": "Save", "clear": "Clear", "remove": "Remove", "proceed": "Proceed to checkout" }
+  "nav2": {
+    "pay": "Unlock"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "save": "Save",
+    "clear": "Clear",
+    "remove": "Remove",
+    "proceed": "Proceed to checkout"
+  }
 }

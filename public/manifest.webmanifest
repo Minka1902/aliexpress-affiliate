@@ -6,7 +6,9 @@
   "display": "standalone",
   "background_color": "#f5f5f5",
   "theme_color": "#E62E04",
-  "icons": [],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
   "share_target": {
     "action": "/dashboard/link-generator",
     "method": "GET",

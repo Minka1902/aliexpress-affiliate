@@ -218,10 +218,12 @@ export async function getShipping(opts: {
   if (!result) return null;
   const list = asArray(result.aeop_freight_calculate_result_for_buyer_d_t_o_list, "aeop_freight_calculate_result_for_buyer_d_t_o");
   const first = list[0];
+  const fee = str(first?.freight_amount ?? first?.fee);
   return {
     productId: opts.productId,
     estimatedDeliveryDays: first?.max_delivery_days ? Number(first.max_delivery_days) : undefined,
-    shippingFee: str(first?.freight_amount ?? first?.fee),
+    shippingFee: fee,
+    freeShipping: fee !== undefined ? Number(fee) === 0 : undefined,
     currency: CURRENCY(),
     serviceName: str(first?.service_name),
   };

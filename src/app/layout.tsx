@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "AffiLink — AliExpress Affiliate",
   description: "Turn any AliExpress link into your affiliate link",
   manifest: "/manifest.webmanifest",
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
 };
 
 const THEMES = ["aliexpress", "dark", "contrast"];

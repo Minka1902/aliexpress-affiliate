@@ -18,6 +18,7 @@ export function BottomNav({ features }: { features: Entitlements }) {
 
   const tabs: { href: string; icon: IconName; label: string; badge: number }[] = [
     { href: "/dashboard", icon: "home", label: t("nav.dashboard"), badge: 0 },
+    { href: "/dashboard/browse", icon: "search", label: t("nav.browse"), badge: 0 },
     { href: "/dashboard/link-generator", icon: "link", label: t("nav.linkGenerator"), badge: 0 },
     {
       href: features.cart ? "/dashboard/cart" : "/dashboard/pay",

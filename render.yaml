@@ -1,0 +1,42 @@
+# Render blueprint. SQLite lives on a persistent disk so it survives deploys.
+services:
+  - type: web
+    name: affilink
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npx prisma generate && npm run build
+    # Apply schema to the persistent DB, then start the standalone server.
+    startCommand: npx prisma db push --skip-generate && npm run start
+    healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        value: file:/data/app.db
+      - key: NODE_ENV
+        value: production
+      # Set these in the Render dashboard (do NOT commit secrets):
+      - key: SESSION_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ALIEXPRESS_APP_KEY
+        sync: false
+      - key: ALIEXPRESS_APP_SECRET
+        sync: false
+      - key: DEFAULT_SHIP_COUNTRY
+        value: US
+      - key: FREE_AI_KEY
+        sync: false
+      - key: APP_BASE_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

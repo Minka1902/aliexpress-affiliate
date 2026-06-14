@@ -14,6 +14,10 @@ export interface AeProduct {
   promotionUrl?: string; // tracked affiliate link, when available
   categoryId?: string;
   shopUrl?: string;
+  // optional shipping enrichment (only populated for single-product resolves)
+  estimatedDeliveryDays?: number;
+  shippingFee?: string;
+  freeShipping?: boolean;
 }
 
 export interface AffiliateLinkResult {
@@ -41,4 +45,5 @@ export interface ShippingInfo {
   shippingFee?: string;
   currency?: string;
   serviceName?: string;
+  freeShipping?: boolean;
 }
