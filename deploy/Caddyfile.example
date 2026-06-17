@@ -1,0 +1,13 @@
+# AffiLink reverse proxy — Caddy gives you automatic HTTPS (Let's Encrypt).
+# Copy to /etc/caddy/Caddyfile and reload:  sudo systemctl reload caddy
+#
+# With a domain (DNS A/AAAA record must point at the VM's public IP):
+affilink.example.com {
+	encode gzip
+	reverse_proxy localhost:3000
+}
+
+# No domain yet? Serve plain HTTP on port 80 instead (replace the block above):
+# :80 {
+# 	reverse_proxy localhost:3000
+# }

@@ -1,0 +1,22 @@
+[Unit]
+Description=AffiLink (Next.js) production server
+After=network.target
+
+[Service]
+Type=simple
+User=@APP_USER@
+WorkingDirectory=@APP_DIR@
+EnvironmentFile=@APP_DIR@/.env
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# `next start` serves the production build created by `npm run build`
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=5
+# Basic hardening
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
